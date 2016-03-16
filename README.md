@@ -2,13 +2,9 @@
 
 Grupo de SD 45 - Campus Alameda
 
-João Neves  70171 joaoneves792@gmail.com
-
-... ... ...
-
-... ... ...
-*(preencher com nome, número e email de membro do grupo e depois apagar esta linha)*
-
+João Neves      70171   joaoneves792@gmail.com
+Paulo Gouveia   75657   paulojlgouveia@gmail.com
+Daniel Figueira 75694   daniel.figueira@ist.utl.pt
 
 Repositório:
 [tecnico-distsys/A_45-project](https://github.com/tecnico-distsys/A_45-project/)
