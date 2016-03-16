@@ -1,9 +1,8 @@
 # Projeto de Sistemas Distribuídos 2015-2016 #
 
-Grupo de SD ... - Campus ...
-*(preencher com número do grupo de SD no Fénix e depois apagar esta linha)*
+Grupo de SD 45 - Campus Alameda
 
-... ... ...
+João Neves  70171 joaoneves792@gmail.com
 
 ... ... ...
 
@@ -12,7 +11,7 @@ Grupo de SD ... - Campus ...
 
 
 Repositório:
-[tecnico-distsys/C_XX-project](https://github.com/tecnico-distsys/C_XX-project/)
+[tecnico-distsys/A_45-project](https://github.com/tecnico-distsys/A_45-project/)
 
 -------------------------------------------------------------------------------
 
