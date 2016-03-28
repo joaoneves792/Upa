@@ -12,6 +12,8 @@ import javax.xml.ws.BindingProvider;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
+import pt.upa.transporter.ws.cli.TransporterClient; //Error: Package not found
+
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
     wsdlLocation="broker.1_0.wsdl",
@@ -24,51 +26,38 @@ public class BrokerPort implements BrokerPortType {
 
 	// TODO
 	
-	
+	@Override
     public String ping(String name) {
-    	
-//     	try {  		
-// 			UDDINaming uddiNaming = new UDDINaming("http://localhost:9090");
-// 			String endpointAddress = uddiNaming.lookup("UpaTransporter1");
-// 			System.out.printf("Looking for '%s'%n", "UpaTransporter1");
-// 			
-// 			TransporterService service = new TransporterService();
-// 			TransporterPortType port = service.getTransporterPort();
-// 
-// 			BindingProvider bindingProvider = (BindingProvider) port;
-// 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-			
-// 	    	return port.ping(name + " pong");
-
-//     	} catch (JAXRException e) {
-// 	    	return name + " pong";
-//     	}
-
-		return name + " pong";
-
-
+		try {
+			TransporterClient client = TransporterClient("http://localhost:9090", "UpaTransporter1");
+			return client.port.ping(name + " pong");
+		} catch(Exception e){
+			System.out.println(e.getMessage());
+			return name + " pong";
+		}
     }
 	
-
+	@Override
     public String requestTransport(String origin, String destination, int price)
             throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
     	
     	return "FIXME";
     }
     
-    
+	@Override
     public TransportView viewTransport(String id)
             throws UnknownTransportFault_Exception {
     	
     	return new TransportView();
     }
     
+	@Override
     public List<TransportView> listTransports() {
     	
     	return new ArrayList<TransportView>();
     }
 
+	@Override
     public void clearTransports() {
     	
     }
