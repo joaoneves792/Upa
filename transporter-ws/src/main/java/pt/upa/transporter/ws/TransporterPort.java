@@ -19,7 +19,7 @@ public class TransporterPort implements TransporterPortType {
 
 	@Override
 	public String ping(String name) {
-		return "Pong " + name + "!";
+		return "name" + " pong";
 	}
 	
 	@Override

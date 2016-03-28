@@ -48,7 +48,7 @@ public class TransporterClientApplication {
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 
 		
-		String result = port.ping(" ping ");
+		String result = port.ping("ping");
 		System.out.println(result);
 		
 		
