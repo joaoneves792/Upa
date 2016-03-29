@@ -29,7 +29,7 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public String ping(String name) {
 		try {
-			TransporterClient client = TransporterClient("http://localhost:9090", "UpaTransporter1");
+			TransporterClient client = new TransporterClient("http://localhost:9090", "UpaTransporter1");
 			return client.port.ping(name + " pong");
 		} catch(Exception e){
 			System.out.println(e.getMessage());
