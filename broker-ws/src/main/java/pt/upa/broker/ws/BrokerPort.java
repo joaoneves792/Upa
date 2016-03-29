@@ -12,7 +12,7 @@ import javax.xml.ws.BindingProvider;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
-import pt.upa.transporter.ws.cli.TransporterClient; //Error: Package not found
+import pt.upa.transporter.ws.cli.TransporterClient;
 
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
@@ -28,13 +28,16 @@ public class BrokerPort implements BrokerPortType {
 	
 	@Override
     public String ping(String name) {
+		String result = name + " UpaBroker";
+		for (int i = 0; i < 10; i++){ 
 		try {
-			TransporterClient client = new TransporterClient("http://localhost:9090", "UpaTransporter1");
-			return client.port.ping(name + " pong");
-		} catch(Exception e){
-			System.out.println(e.getMessage());
-			return name + " pong";
+				TransporterClient client = new TransporterClient("http://localhost:9090", "UpaTransporter" + i);
+				result = client.port.ping(result);
+			} catch(Exception e) {
+				//do nothing
+			}
 		}
+		return result;
     }
 	
 	@Override
