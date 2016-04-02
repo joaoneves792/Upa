@@ -12,8 +12,17 @@ public class TransporterClientApplication {
 			return;
 		}
 		
-		TransporterClient client = new TransporterClient(args[0], args[1]);
+		TransporterClient tclient = new TransporterClient(args[0], args[1]);
 		
-		System.out.println(client.port.ping("ping"));	
+		System.out.println("\nping(): " + tclient.port.ping("ping"));
+		
+		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
+		
+		System.out.println("\nclearJobs(): "); tclient.port.clearJobs();
+		
+		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
+		
+		System.out.println();
+
 	}
 }

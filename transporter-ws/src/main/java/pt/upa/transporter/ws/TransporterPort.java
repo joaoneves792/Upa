@@ -17,6 +17,9 @@ import javax.jws.WebService;
 )
 public class TransporterPort implements TransporterPortType {
 
+
+	List<JobView> _jobsList = new ArrayList<JobView>();
+
 	@Override
 	public String ping(String name) {
 		return name + " UpaTransporter";
@@ -24,9 +27,13 @@ public class TransporterPort implements TransporterPortType {
 	
 	@Override
     public JobView requestJob(String origin, String destination, int price)
-            throws BadLocationFault_Exception, BadPriceFault_Exception {
+			throws BadLocationFault_Exception, BadPriceFault_Exception {
+
+		JobView job = new JobView();
 		
-		return new JobView();
+		
+		
+		return job;
 	}
 	
 	@Override
@@ -44,11 +51,11 @@ public class TransporterPort implements TransporterPortType {
 	
 	@Override
 	public List<JobView> listJobs() {		 
-		return  new ArrayList<JobView>();
+		return _jobsList;
 	}
 	
 	@Override
 	public void clearJobs() {
-		
+		_jobsList.clear();
 	}
 }
