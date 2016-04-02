@@ -43,12 +43,12 @@ public class TransporterClient {
 	
 	
 	
-	/*
+/*
+	// don't this is necessary. it requires a bunch of imports
 	
 	public String ping(String name) {
 		return port.ping(name);
 	}
-	
 	
     public JobView requestJob(String origin, String destination, int price)
 			throws BadLocationFault_Exception, BadPriceFault_Exception {
@@ -56,33 +56,24 @@ public class TransporterClient {
 		return port.requestJob(origin, destination, price);
 	}
 	
-	
     public JobView decideJob(String id,boolean accept)
 			throws BadJobFault_Exception {
 		
     	return port.decideJob(id, accept);
     }
-    
 	
 	public JobView jobStatus(String id) {
 		return port.jobStatus(id);
 	}
 	
-	
 	public List<JobView> listJobs() {		 
 		return port.listJobs();
 	}
-	
 	
 	public void clearJobs() {
 		port.clearJobs();
 	}
 	
-	*/
-	
-	
-	
-	
-	
-	
+*/
+
 }

@@ -14,7 +14,36 @@ public class TransporterClientApplication {
 		
 		TransporterClient tclient = new TransporterClient(args[0], args[1]);
 		
+		// just testing functions from here on
+		
 		System.out.println("\nping(): " + tclient.port.ping("ping"));
+		
+		System.out.println();
+		for(int t=128; t>-100; t = t-60)
+			try {
+				System.out.println("requestJob(Lisboa,Leiria,"+t+"): "
+										+ tclient.port.requestJob("Lisboa", "Leiria", t));
+			} catch (Exception  e) {
+				System.out.println("requestJob() failed: " + e.getMessage());
+			}
+		
+		System.out.println();
+		for(int t=128; t>-100; t = t-60)
+			try {
+				switch(t) {
+					case 128: System.out.println("requestJob(RandomName,Porto,"+t+"): "
+											+ tclient.port.requestJob("RandomName", "Porto", t)); break;
+					case 68: System.out.println("requestJob(Porto,Lisboa,"+t+"): "
+											+ tclient.port.requestJob("Porto", "Lisboa", t)); break;
+					case 8: System.out.println("requestJob(Leiria,Beja,"+t+"): "
+											+ tclient.port.requestJob("Leiria", "Beja", t)); break;
+					case -52: System.out.println("requestJob(Evora,Braga,"+t+"): "
+											+ tclient.port.requestJob("Evora", "Braga", t)); break;
+				}
+				
+			} catch (Exception  e) {
+				System.out.println("requestJob() failed: " + e.getMessage());
+			}
 		
 		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
 		
