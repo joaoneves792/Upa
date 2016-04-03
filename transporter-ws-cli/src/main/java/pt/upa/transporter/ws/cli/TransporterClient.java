@@ -3,7 +3,9 @@ package pt.upa.transporter.ws.cli;
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
 import java.util.Map;
+import java.util.jar.JarException;
 
+import javax.xml.registry.JAXRException;
 import javax.xml.ws.BindingProvider;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
@@ -13,7 +15,7 @@ import pt.upa.transporter.ws.TransporterService;
 public class TransporterClient {
 	public TransporterPortType port;
 	
-	public TransporterClient(String uddiURL, String name) throws Exception {
+	public TransporterClient(String uddiURL, String name)throws JAXRException {
 		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 		
 		System.out.printf("Contacting UDDI at %s%n", uddiURL);
@@ -39,7 +41,9 @@ public class TransporterClient {
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);	
 	}
 	
-	
+	public TransporterPortType getPort(){
+		return port;
+	}
 	
 	
 	
