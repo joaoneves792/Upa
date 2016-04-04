@@ -26,13 +26,9 @@ public class TransporterApplication {
 		try {
 		
 			int n = Character.getNumericValue(name.charAt(name.length()-1));
-		
-			TransporterPort port = new TransporterPort(n);
-		
-		
-// 			TransporterPort port = new TransporterPort(name.substring(name.length() - 1));
-		
+			
 // 			TransporterPort port = new TransporterPort();
+			TransporterPort port = new TransporterPort(n);
 			endpoint = Endpoint.create(port);
 
 			// publish endpoint

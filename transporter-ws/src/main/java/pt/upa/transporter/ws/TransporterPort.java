@@ -25,7 +25,12 @@ public class TransporterPort implements TransporterPortType {
 
 	
 	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService.
-	public TransporterPort(int n) { _id = n; }	
+	public TransporterPort(int n) { _id = n; }
+	
+	// getters
+	public int getId() { return _id; };
+	public int getJobCounter() { return _jobCouter; };
+	
 	
 	// auxiliary function to create a unic job identifier
 	private int generateJobId() {
@@ -98,7 +103,7 @@ public class TransporterPort implements TransporterPortType {
 		job.setJobDestination(destination);
 		job.setJobState(JobStateView.PROPOSED);
 		
-		// has to return a better deal for prices under or equal than 10
+		// has to return a better deal for prices lower or equal than 10
 		if(price <= 10) {
 			job.setJobPrice((new Random()).nextInt(price));
 		}
