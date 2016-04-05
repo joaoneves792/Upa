@@ -3,6 +3,7 @@ package pt.upa.broker.ws;
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,8 @@ public class BrokerPort implements BrokerPortType {
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
 	private int _idCounter;
+
+	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter*";
 
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
@@ -64,21 +67,29 @@ public class BrokerPort implements BrokerPortType {
 		List<JobView> availableJobs = new ArrayList<>();
 
 		//Contact all transporter companies and get their proposals
-		//FIXME: Somehow get the list of all transport clients from UDDI instead of the first 10!
-		for (int i=0; i<10; i++){
-			try {
-				TransporterClient client = new TransporterClient(_uddiLocation, "UpaTransporter" + i);
-				try{
+		try{
+			UDDINaming uddi = new UDDINaming(_uddiLocation);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
+
+			for(String transporter : transporters) {
+				try {
+					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
+
 					JobView job = client.getPort().requestJob(origin, destination, price);
-					if(null != job)
+					if (null != job)
 						availableJobs.add(job);
-				}catch (BadLocationFault_Exception | BadPriceFault_Exception e){
+				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 					//We already checked for these issues, so if the transporter server
 					//doesn't like them just ignore that transporter, its their bug!
+				}catch (JAXRException e){
+					//Nothing we can do here, just move on to the next transporter...
 				}
-			}catch (JAXRException e){
-				//Nothing to do here, just move to the next transporter...
 			}
+		}catch (JAXRException e){  //Connection to UDDI failed
+			UnavailableTransportFault fault = new UnavailableTransportFault();
+			fault.setOrigin(origin);
+			fault.setDestination(destination);
+			throw new UnavailableTransportFault_Exception("Unable to contact any transporter company at this time.", fault);
 		}
 
 		if(availableJobs.isEmpty()){
@@ -122,6 +133,7 @@ public class BrokerPort implements BrokerPortType {
 
     	return (transport.getState() == TransportStateView.BOOKED)? "BOOKED": "FAILED";
     }
+
 	private void verifyLocation(String location) throws UnknownLocationFault_Exception {
 		if(Locations.north.contains(location) || Locations.center.contains(location) || Locations.south.contains(location))
 			return;
