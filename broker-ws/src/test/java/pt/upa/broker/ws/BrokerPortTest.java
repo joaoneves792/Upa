@@ -10,7 +10,9 @@ import pt.upa.transporter.ws.cli.TransporterClient;
 import javax.xml.registry.JAXRException;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -31,6 +33,8 @@ public class BrokerPortTest {
     private final int OVERPRICED_PRICE = 101;
     private final int UNDERPRICED_PRICE = 99;
 
+    private final String FAILED_JOB = "FAILED";
+    private final String BOOKED_JOB = "BOOKED";
 
 
     private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
@@ -38,6 +42,7 @@ public class BrokerPortTest {
     private ArrayList<String> transporterlist = new ArrayList<>();
     private JobView overpricedJob = new JobView();
     private JobView underpricedJob = new JobView();
+    private JobView acceptedJob = new JobView();
 
     @Mocked
     private TransporterClient client;
@@ -47,7 +52,6 @@ public class BrokerPortTest {
 
     @Mocked
     private UDDINaming uddi;
-
 
 
     @Before
@@ -68,6 +72,13 @@ public class BrokerPortTest {
         underpricedJob.setJobIdentifier("2");
         underpricedJob.setJobPrice(UNDERPRICED_PRICE);
         underpricedJob.setJobState(JobStateView.PROPOSED);
+
+        acceptedJob.setCompanyName(TRANSPORTER_COMPANY_PREFIX + "1");
+        acceptedJob.setJobDestination(VALID_DESTINATION);
+        acceptedJob.setJobOrigin(VALID_ORIGIN);
+        acceptedJob.setJobIdentifier("2");
+        acceptedJob.setJobPrice(UNDERPRICED_PRICE);
+        acceptedJob.setJobState(JobStateView.ACCEPTED);
     }
 
     @After
@@ -75,88 +86,88 @@ public class BrokerPortTest {
         //Empty for now
     }
 
-    @Test
-    public void emptyListOnStartTest(){
-        assertTrue("List not empty", broker.listTransports().isEmpty());
-    }
+
+    /*
+    requestTransport test cases
+     */
 
     @Test(expected = InvalidPriceFault_Exception.class)
-    public void requestTransportNegativePrice()throws Exception{
+    public void requestTransportNegativePrice() throws Exception {
         broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, INVALID_PRICE);
     }
 
     @Test(expected = UnknownLocationFault_Exception.class)
-    public void requestTransportInvalidOrigin()throws Exception{
+    public void requestTransportInvalidOrigin() throws Exception {
         broker.requestTransport(INVALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnknownLocationFault_Exception.class)
-    public void requestTransportInvalidDestination()throws Exception{
+    public void requestTransportInvalidDestination() throws Exception {
         broker.requestTransport(VALID_ORIGIN, INVALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnknownLocationFault_Exception.class)
-    public void requestTransportInvalidOriginAndDestination()throws Exception{
+    public void requestTransportInvalidOriginAndDestination() throws Exception {
         broker.requestTransport(INVALID_ORIGIN, INVALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportUDDIUnavailable()throws Exception{
-        new Expectations(){
+    public void requestTransportUDDIUnavailable() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(new JAXRException());
+                result = (new JAXRException());
             }
         };
         broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportUDDIListFailed()throws Exception{
-        new Expectations(){
+    public void requestTransportUDDIListFailed() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(new JAXRException());
+                result = (new JAXRException());
             }
         };
         broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportTransporterNoneAvailable()throws Exception{
-        new Expectations(){
+    public void requestTransportTransporterNoneAvailable() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(new ArrayList<String>());
+                result = (new ArrayList<String>());
             }
         };
         broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportTransporterUnavailable()throws Exception{
-        new Expectations(){
+    public void requestTransportTransporterUnavailable() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(transporterlist);
+                result = (transporterlist);
 
                 new TransporterClient(BOGUS_URL, (String) any);
-                result=(client);
+                result = (client);
 
                 client.getPort();
-                result=(tpt);
+                result = (tpt);
 
                 tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result=(new JAXRException());
+                result = (new JAXRException());
 
             }
         };
@@ -164,23 +175,23 @@ public class BrokerPortTest {
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportNoneAvailableBadLocation()throws Exception{
-        new Expectations(){
+    public void requestTransportNoneAvailableBadLocation() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(transporterlist);
+                result = (transporterlist);
 
                 new TransporterClient(BOGUS_URL, (String) any);
-                result=(client);
+                result = (client);
 
                 client.getPort();
-                result=(tpt);
+                result = (tpt);
 
                 tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result=(new BadLocationFault_Exception("", new BadLocationFault()));
+                result = (new BadLocationFault_Exception("", new BadLocationFault()));
 
             }
         };
@@ -188,23 +199,23 @@ public class BrokerPortTest {
     }
 
     @Test(expected = UnavailableTransportFault_Exception.class)
-    public void requestTransportNoneAvailableBadPrice()throws Exception{
-        new Expectations(){
+    public void requestTransportNoneAvailableBadPrice() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(transporterlist);
+                result = (transporterlist);
 
                 new TransporterClient(BOGUS_URL, (String) any);
-                result=(client);
+                result = (client);
 
                 client.getPort();
-                result=(tpt);
+                result = (tpt);
 
                 tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result=(new BadPriceFault_Exception("", new BadPriceFault()));
+                result = (new BadPriceFault_Exception("", new BadPriceFault()));
 
             }
         };
@@ -212,26 +223,225 @@ public class BrokerPortTest {
     }
 
     @Test(expected = UnavailableTransportPriceFault_Exception.class)
-    public void requestTransportPriceTooHigh()throws Exception{
-        new Expectations(){
+    public void requestTransportPriceTooHigh() throws Exception {
+        new Expectations() {
             {
                 new UDDINaming((String) any);
-                result=(uddi);
+                result = (uddi);
 
                 uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
-                result=(transporterlist);
+                result = (transporterlist);
 
                 new TransporterClient(BOGUS_URL, (String) any);
-                result=(client);
+                result = (client);
 
                 client.getPort();
-                result=(tpt);
+                result = (tpt);
 
                 tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result=(overpricedJob);
+                result = (overpricedJob);
 
             }
         };
         broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
     }
+
+    @Test
+    public void requestTransportFailedBookBadJob() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (new BadJobFault_Exception("", new BadJobFault()));
+
+            }
+        };
+        assertEquals("Booking should have failed", broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+    }
+
+    @Test
+    public void requestTransportFailedBookNullJob() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (null);
+
+            }
+        };
+        assertEquals("Booking should have failed", broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+    }
+
+    @Test
+    public void requestTransportFailedBookTransporterConnectionFailed() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (new JAXRException());
+
+            }
+        };
+        assertEquals("Booking should have failed", broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+    }
+
+    @Test
+    public void requestTransportSuccess() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (acceptedJob);
+
+            }
+        };
+        assertEquals("Booking should have failed", broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
+    }
+
+
+    /*
+    listTransport Test cases
+    */
+
+    @Test
+    public void listTransportsSuccess() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (acceptedJob);
+
+            }
+        };
+        broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        List<TransportView> tl = broker.listTransports();
+        assertEquals("Should only have one job", tl.size(), 1);
+        assertEquals(tl.get(0).getDestination(), VALID_DESTINATION);
+        assertEquals(tl.get(0).getOrigin(), VALID_ORIGIN);
+        assertEquals(tl.get(0).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertTrue(tl.get(0).getPrice() <= VALID_PRICE);
+        assertEquals(tl.get(0).getState(), TransportStateView.BOOKED);
+
+        broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        tl = broker.listTransports();
+        assertEquals("Should have two jobs", tl.size(), 2);
+        assertEquals(tl.get(1).getDestination(), VALID_DESTINATION);
+        assertEquals(tl.get(1).getOrigin(), VALID_ORIGIN);
+        assertEquals(tl.get(1).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertTrue(tl.get(1).getPrice() <= VALID_PRICE);
+        assertEquals(tl.get(1).getState(), TransportStateView.BOOKED);
+    }
+
+    @Test
+    public void listTransportsEmptyOnStart() {
+        assertTrue("List not empty", broker.listTransports().isEmpty());
+    }
+
+    /*
+    clearTransports test cases
+     */
+
+    @Test
+    public void clearTransportsSuccess() throws Exception {
+        new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (uddi);
+
+                uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (transporterlist);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (client);
+
+                client.getPort();
+                result = (tpt);
+
+                tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (underpricedJob);
+
+                tpt.decideJob((String) any, true);
+                result = (acceptedJob);
+
+            }
+        };
+        broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        List<TransportView> tl = broker.listTransports();
+        assertEquals(tl.size(), 2);
+        broker.clearTransports();
+        tl = broker.listTransports();
+        assertEquals(tl.size(), 0);
+    }
+
 }
