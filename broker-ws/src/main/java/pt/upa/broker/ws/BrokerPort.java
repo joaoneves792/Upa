@@ -40,13 +40,20 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public String ping(String name) {
 		String result = name + " UpaBroker";
-		for (int i = 0; i < 10; i++){ 
 		try {
-				TransporterClient client = new TransporterClient("http://localhost:9090", "UpaTransporter" + i);
-				result = client.port.ping(result);
-			} catch(Exception e) {
-				//do nothing
+			UDDINaming uddi = new UDDINaming(_uddiLocation);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
+
+			for (String transporter : transporters) {
+				try{
+					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
+					result = client.getPort().ping(result);
+				}catch (JAXRException e){
+					result += " " + transporter + " failed! ";
+				}
 			}
+		}catch(JAXRException e){
+			result += " UDDI Failed ";
 		}
 		return result;
     }
@@ -64,33 +71,10 @@ public class BrokerPort implements BrokerPortType {
 		verifyLocation(destination);
 
 
-		List<JobView> availableJobs = new ArrayList<>();
 
 		//Contact all transporter companies and get their proposals
-		try{
-			UDDINaming uddi = new UDDINaming(_uddiLocation);
-			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
-
-			for(String transporter : transporters) {
-				try {
-					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
-
-					JobView job = client.getPort().requestJob(origin, destination, price);
-					if (null != job)
-						availableJobs.add(job);
-				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
-					//We already checked for these issues, so if the transporter server
-					//doesn't like them just ignore that transporter, its their bug!
-				}catch (JAXRException e){
-					//Nothing we can do here, just move on to the next transporter...
-				}
-			}
-		}catch (JAXRException e){  //Connection to UDDI failed
-			UnavailableTransportFault fault = new UnavailableTransportFault();
-			fault.setOrigin(origin);
-			fault.setDestination(destination);
-			throw new UnavailableTransportFault_Exception("Unable to contact any transporter company at this time.", fault);
-		}
+		List<JobView> availableJobs;
+		availableJobs = getJobProposals(origin, destination, price);
 
 		if(availableJobs.isEmpty()){
 			UnavailableTransportFault fault = new UnavailableTransportFault();
@@ -115,11 +99,44 @@ public class BrokerPort implements BrokerPortType {
 			throw new UnavailableTransportPriceFault_Exception("No transport found for your maximum price, lowest available is: " + choosenJob.getJobPrice(), fault);
 		}
 
-
 		TransportView transport = createBudgetedTransport(choosenJob);
 		_transportList.add(transport);
 
-		//Try to book the job
+		bookJob(transport);
+
+		return (transport.getState() == TransportStateView.BOOKED)? "BOOKED": "FAILED";
+    }
+
+	private List<JobView> getJobProposals(String origin, String destination, int price) throws UnavailableTransportFault_Exception {
+		List<JobView> availableJobs = new ArrayList<>();
+		try{
+			UDDINaming uddi = new UDDINaming(_uddiLocation);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
+
+			for(String transporter : transporters) {
+				try {
+					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
+
+					JobView job = client.getPort().requestJob(origin, destination, price);
+					if (null != job)
+						availableJobs.add(job);
+				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
+					//We already checked for these issues, so if the transporter server
+					//doesn't like them just ignore that transporter, its their bug!
+				}catch (JAXRException e){
+					//Nothing we can do here, just move on to the next transporter...
+				}
+			}
+		}catch (JAXRException e){  //Connection to UDDI failed
+			UnavailableTransportFault fault = new UnavailableTransportFault();
+			fault.setOrigin(origin);
+			fault.setDestination(destination);
+			throw new UnavailableTransportFault_Exception("Unable to contact any transporter company at this time.", fault);
+		}
+		return availableJobs;
+	}
+
+	private void bookJob(TransportView transport) {
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
 			JobView job = client.getPort().decideJob(transport.getId(), true);
@@ -130,9 +147,7 @@ public class BrokerPort implements BrokerPortType {
 		}catch (JAXRException | BadJobFault_Exception e){
 			transport.setState(TransportStateView.FAILED);
 		}
-
-    	return (transport.getState() == TransportStateView.BOOKED)? "BOOKED": "FAILED";
-    }
+	}
 
 	private void verifyLocation(String location) throws UnknownLocationFault_Exception {
 		if(Locations.north.contains(location) || Locations.center.contains(location) || Locations.south.contains(location))
