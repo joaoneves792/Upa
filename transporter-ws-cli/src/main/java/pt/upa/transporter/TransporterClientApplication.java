@@ -18,6 +18,12 @@ public class TransporterClientApplication {
 		
 		System.out.println("\nping(): " + tclient.port.ping("ping"));
 		
+		System.out.println("requestJob(Lisboa,Leiria,50): "
+						+ tclient.port.requestJob("Lisboa", "Leiria",50));
+						
+		System.out.println("jobStatus(\"1\"): " + tclient.port.jobStatus("1"));
+		
+/*		
 		System.out.println();
 		for(int t=128; t>-100; t = t-60)
 			try {
@@ -44,6 +50,7 @@ public class TransporterClientApplication {
 			} catch (Exception  e) {
 				System.out.println("requestJob() failed: " + e.getMessage());
 			}
+*/
 		
 		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
 		

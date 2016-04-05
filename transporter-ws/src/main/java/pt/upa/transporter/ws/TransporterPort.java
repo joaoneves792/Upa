@@ -20,22 +20,21 @@ import java.util.Random;
 public class TransporterPort implements TransporterPortType {
 	
 	int _id;
-	int _jobCouter;
+	int _jobCounter;
 	List<JobView> _jobs = new ArrayList<JobView>();
-
 	
 	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService.
 	public TransporterPort(int n) { _id = n; }
 	
 	// getters
 	public int getId() { return _id; };
-	public int getJobCounter() { return _jobCouter; };
+	public int getJobCounter() { return _jobCounter; };
 	
 	
 	// auxiliary function to create a unic job identifier
 	private int generateJobId() {
-		_jobCouter++;
-		return _jobCouter;
+		_jobCounter++;
+		return _jobCounter;
 	}
 	
 	// auxiliary function to check the tranporter's possible working locations
@@ -82,7 +81,7 @@ public class TransporterPort implements TransporterPortType {
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
 			return null;
 		
-		// negatrive prices are not allowed
+		// negative prices are not allowed
 		if(price < 0) {
 			BadPriceFault priceFault = new BadPriceFault();
 			priceFault.setPrice(price);
@@ -123,7 +122,7 @@ public class TransporterPort implements TransporterPortType {
 	
 	@Override
     public JobView decideJob(String id,boolean accept)
-            throws BadJobFault_Exception {
+      throws BadJobFault_Exception {
 		
     	return new JobView();
 
@@ -131,7 +130,10 @@ public class TransporterPort implements TransporterPortType {
 	
 	@Override
 	public JobView jobStatus(String id) {
-		return new JobView();
+	  for (int i = 0; i < _jobs.size(); i++)
+	    if (_jobs.get(i).getJobIdentifier().equals(id))
+	      return _jobs.get(i);
+		return null;
 	}
 	
 	@Override
