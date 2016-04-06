@@ -16,17 +16,29 @@ public class TransporterClientApplication {
 		
 		// just testing functions from here on
 		
-		System.out.println("\nping(): " + tclient.port.ping("ping"));
+		System.out.println("\nping(): " + tclient.port.ping("ping") + "\n");
 		
 		System.out.println("requestJob(Lisboa,Leiria,50): "
-						+ tclient.port.requestJob("Lisboa", "Leiria",50));
+						+ tclient.port.requestJob("Lisboa", "Leiria",50) + "\n");
 						
 		System.out.println("jobStatus(\"1\"): " + tclient.port.jobStatus("1"));
 		System.out.println("jobStatus(\"-1\"): " + tclient.port.jobStatus("-1"));
+		System.out.println();
 		
-		System.out.println("decideJob(\"1\", true): " + tclient.port.decideJob("1", true));
-		System.out.println("decideJob(\"-1\", true): " + tclient.port.decideJob("-1", true));
-		
+		try {
+			System.out.print("decideJob(\"1\", true): ");
+			System.out.println(tclient.port.decideJob("1", true));
+		} catch (Exception e) {
+			System.out.println("Exception Caught: " + e.getMessage());
+		}
+	
+		try {
+			System.out.print("decideJob(\"-1\", true): ");
+			System.out.println(tclient.port.decideJob("-1", true));
+		} catch (Exception e) {
+			System.out.println("Exception Caught: " + e.getMessage());
+		}
+		System.out.println();
 /*
 		System.out.println();
 		for(int t=128; t>-100; t = t-60)
@@ -60,8 +72,8 @@ public class TransporterClientApplication {
 		System.out.println("\nclearJobs(): "); tclient.port.clearJobs();
 		
 		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
-*/
+		
 		System.out.println();
-
+*/
 	}
 }

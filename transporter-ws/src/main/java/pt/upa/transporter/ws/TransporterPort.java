@@ -127,12 +127,24 @@ public class TransporterPort implements TransporterPortType {
 	}
 	
 	@Override
-    public JobView decideJob(String id, boolean accept) //TODO: Check job status
+    public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
+		String error = null;
 		
 		JobView job = getJob(id);
+		
+		// check if job is valid
 		if (job == null)
-			return null;
+			error = "Invalid job identificator";
+		else if (job.getJobState() != JobStateView.PROPOSED)
+			error = "Invalid job status";
+		
+		// if so throw corresponding exception
+		if (error != null){
+			BadJobFault badJobFault = new BadJobFault();
+			badJobFault.setId(id);
+			throw new BadJobFault_Exception(error, badJobFault);
+		}
 			
 		if (accept)
 			job.setJobState(JobStateView.ACCEPTED);
