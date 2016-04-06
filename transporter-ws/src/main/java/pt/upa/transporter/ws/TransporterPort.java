@@ -29,7 +29,13 @@ public class TransporterPort implements TransporterPortType {
 	// getters
 	public int getId() { return _id; };
 	public int getJobCounter() { return _jobCounter; };
-	
+
+	private JobView getJob(String id) {
+		for (int i = 0; i < _jobs.size(); i++)
+	    	if (_jobs.get(i).getJobIdentifier().equals(id))
+				return _jobs.get(i);
+		return null;
+	}
 	
 	// auxiliary function to create a unic job identifier
 	private int generateJobId() {
@@ -75,7 +81,7 @@ public class TransporterPort implements TransporterPortType {
 	// section 5.1. requirements in comments
 	@Override
     public JobView requestJob(String origin, String destination, int price)
- 			throws BadLocationFault_Exception, BadPriceFault_Exception {		
+ 			throws BadLocationFault_Exception, BadPriceFault_Exception {
 		
 		// check for recognised location and working regions
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
@@ -91,7 +97,7 @@ public class TransporterPort implements TransporterPortType {
 		
 		// has to return null for prices over 100
 		if(price > 100) {
-			return null;	
+			return null;
 		}
 
 		JobView job = new JobView();
@@ -121,23 +127,28 @@ public class TransporterPort implements TransporterPortType {
 	}
 	
 	@Override
-    public JobView decideJob(String id,boolean accept)
-      throws BadJobFault_Exception {
+    public JobView decideJob(String id, boolean accept) //TODO: Check job status
+    		throws BadJobFault_Exception {
 		
-    	return new JobView();
-
+		JobView job = getJob(id);
+		if (job == null)
+			return null;
+			
+		if (accept)
+			job.setJobState(JobStateView.ACCEPTED);
+		else
+			job.setJobState(JobStateView.REJECTED);
+		
+		return job;
     }
 	
 	@Override
 	public JobView jobStatus(String id) {
-	  for (int i = 0; i < _jobs.size(); i++)
-	    if (_jobs.get(i).getJobIdentifier().equals(id))
-	      return _jobs.get(i);
-		return null;
+		return getJob(id);
 	}
 	
 	@Override
-	public List<JobView> listJobs() {		 
+	public List<JobView> listJobs() {
 		return _jobs;
 	}
 	
