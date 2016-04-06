@@ -30,11 +30,16 @@ public class TransporterPort implements TransporterPortType {
 	public int getId() { return _id; };
 	public int getJobCounter() { return _jobCounter; };
 
-	private JobView getJob(String id) {
+	private JobView getJob(String id)
+			throws BadJobFault_Exception {
+				
 		for (int i = 0; i < _jobs.size(); i++)
-	    	if (_jobs.get(i).getJobIdentifier().equals(id))
+			if (_jobs.get(i).getJobIdentifier().equals(id))
 				return _jobs.get(i);
-		return null;
+		
+		BadJobFault faultInfo = new BadJobFault();
+		faultInfo.setId(id);
+		throw new BadJobFault_Exception("Invalid job identifier", faultInfo);
 	}
 	
 	// auxiliary function to create a unic job identifier
@@ -71,7 +76,18 @@ public class TransporterPort implements TransporterPortType {
 		return true;
 	}
 	
-
+	// auxliliary function to verify if a job state is correct
+	private void verifyJobState(JobView job, JobStateView correctState)
+    		throws BadJobFault_Exception {
+    			
+		if (job.getJobState() == correctState)
+			return;
+		BadJobFault faultInfo = new BadJobFault();
+		faultInfo.setId(job.getJobIdentifier());
+		throw new BadJobFault_Exception("Invalid job status", faultInfo);
+	}
+	
+	
 	@Override
 	public String ping(String name) {
 		return name + " UpaTransporter" + _id;
@@ -129,23 +145,14 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
-		String error = null;
 		
+		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
 		
-		// check if job is valid
-		if (job == null)
-			error = "Invalid job identificator";
-		else if (job.getJobState() != JobStateView.PROPOSED)
-			error = "Invalid job status";
+		// verify if job state is correct (throws exception if wrong)
+		verifyJobState(job, JobStateView.PROPOSED);
 		
-		// if so throw corresponding exception
-		if (error != null){
-			BadJobFault badJobFault = new BadJobFault();
-			badJobFault.setId(id);
-			throw new BadJobFault_Exception(error, badJobFault);
-		}
-			
+		// change job state to accepted or rejected
 		if (accept)
 			job.setJobState(JobStateView.ACCEPTED);
 		else
@@ -156,7 +163,13 @@ public class TransporterPort implements TransporterPortType {
 	
 	@Override
 	public JobView jobStatus(String id) {
-		return getJob(id);
+		try {
+			//return job with given id
+			return getJob(id);
+		} catch (BadJobFault_Exception e) {
+			// if no job is found return null
+			return null;
+		}
 	}
 	
 	@Override

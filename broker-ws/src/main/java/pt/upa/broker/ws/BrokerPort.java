@@ -37,6 +37,18 @@ public class BrokerPort implements BrokerPortType {
 		_idCounter = 0;
 	}
 	
+	private TransportView getTransport(String id)
+			throws UnknownTransportFault_Exception {
+				
+		for (int i = 0; i < _transportList.size(); i++)
+	    	if (_transportList.get(i).getId().equals(id))
+				return _transportList.get(i);
+		
+		UnknownTransportFault faultInfo = new UnknownTransportFault();
+		faultInfo.setId(id);
+		throw new UnknownTransportFault_Exception("Invalid transport id", faultInfo);
+	}
+	
 	@Override
     public String ping(String name) {
 		String result = name + " UpaBroker";
@@ -168,11 +180,11 @@ public class BrokerPort implements BrokerPortType {
 		return budgetedTransport;
 	}
 
-	@Override
+	@Override //TODO: Check transport state with the transporter??
     public TransportView viewTransport(String id)
             throws UnknownTransportFault_Exception {
-    	
-    	return new TransportView();
+            	
+    	return getTransport(id);
     }
     
 	@Override
@@ -180,7 +192,7 @@ public class BrokerPort implements BrokerPortType {
     	return _transportList;
     }
 
-	@Override
+	@Override //TODO: Clear Transporters job lists
     public void clearTransports() {
     	_transportList.clear();
 		try{
