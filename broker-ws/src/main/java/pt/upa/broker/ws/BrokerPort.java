@@ -183,6 +183,19 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public void clearTransports() {
     	_transportList.clear();
+		try{
+			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX);
+
+			for(String transporter : transporters) {
+				try{
+					(new TransporterClient(_uddiLocation, transporter)).getPort().clearJobs();
+				}catch (JAXRException e){
+					//Nothing we can do here, just move on to the next transporter...
+				}
+			}
+		}catch (JAXRException e){
+			/*Connection to UDDI failed nothing we can do about the transporters jobs...*/
+		}
     }
     
 }
