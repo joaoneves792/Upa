@@ -25,7 +25,7 @@ public class TransporterPort implements TransporterPortType {
 	private List<JobView> _jobs = new ArrayList<JobView>();
 	
 	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService (fix tests after).
-	public TransporterPort(int n) { _id = n; }
+	public TransporterPort(int n) { _id = n; _jobCounter = 0; }
 	
 	// getters
 	public int getId() { return _id; };
@@ -33,14 +33,14 @@ public class TransporterPort implements TransporterPortType {
 
 	private JobView getJob(String id)
 			throws BadJobFault_Exception {
-				
-		for (int i = 0; i < _jobs.size(); i++)
-			if (_jobs.get(i).getJobIdentifier().equals(id))
-				return _jobs.get(i);
+		
+		for(JobView j : _jobs)
+			if(j.getJobIdentifier().equals(id))
+				return j;
 		
 		BadJobFault faultInfo = new BadJobFault();
 		faultInfo.setId(id);
-		throw new BadJobFault_Exception("Invalid job identifier", faultInfo);
+		throw new BadJobFault_Exception("Invalid job identifier ", faultInfo);
 	}
 	
 	// auxiliary function to check the tranporter's possible working locations
@@ -102,7 +102,6 @@ public class TransporterPort implements TransporterPortType {
 		if(price < 0) {
 			BadPriceFault priceFault = new BadPriceFault();
 			priceFault.setPrice(price);
-			
  			throw new BadPriceFault_Exception("invalid price: "+ price, priceFault);
 		}
 		
@@ -140,23 +139,23 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
+    		
+
 		
 		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
 		
 		// verify if job state is correct (throws exception if wrong)
 		verifyJobState(job, JobStateView.PROPOSED);
-		
 		// change job state to accepted or rejected
 		if (accept) {
 			job.setJobState(JobStateView.ACCEPTED);
 			Timer timer = new Timer();
-			timer.schedule(new ChangeStateTimer(job), new Random().nextInt(5000));
-// 			timer.scheduleAtFixedRate(new ChangeStateTimer(job), new Random().nextInt(5000)));
-
-		} else
+			timer.schedule(new ChangeStateTimer(job, timer), new Random().nextInt(5000));
+			
+		} else {
 			job.setJobState(JobStateView.REJECTED);
-		
+		}
 		return job;
     }
 	
@@ -179,5 +178,6 @@ public class TransporterPort implements TransporterPortType {
 	@Override
 	public void clearJobs() {
 		_jobs.clear();
+		_jobCounter = 0;
 	}
 }
