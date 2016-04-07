@@ -5,6 +5,7 @@ import javax.jws.WebService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
@@ -12,7 +13,7 @@ import java.util.Random;
 @WebService(
 	endpointInterface="pt.upa.transporter.ws.TransporterPortType",
     wsdlLocation="transporter.1_0.wsdl",
-    name="UpaTransporter1",
+    name="UpaTransporter",
     portName="TransporterPort",
     targetNamespace="http://ws.transporter.upa.pt/",
     serviceName="TransporterService"
@@ -113,7 +114,7 @@ public class TransporterPort implements TransporterPortType {
 		JobView job = new JobView();
 		
 		job.setCompanyName("UpaTransporter"+_id);
-		job.setJobIdentifier(Integer.toString(_jobCounter++);
+		job.setJobIdentifier(Integer.toString(_jobCounter++));
 		job.setJobOrigin(origin);
 		job.setJobDestination(destination);
 		job.setJobState(JobStateView.PROPOSED);
@@ -147,9 +148,13 @@ public class TransporterPort implements TransporterPortType {
 		verifyJobState(job, JobStateView.PROPOSED);
 		
 		// change job state to accepted or rejected
-		if (accept)
+		if (accept) {
 			job.setJobState(JobStateView.ACCEPTED);
-		else
+			Timer timer = new Timer();
+			timer.schedule(new ChangeStateTimer(job), new Random().nextInt(5000));
+// 			timer.scheduleAtFixedRate(new ChangeStateTimer(job), new Random().nextInt(5000)));
+
+		} else
 			job.setJobState(JobStateView.REJECTED);
 		
 		return job;
