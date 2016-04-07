@@ -42,12 +42,6 @@ public class TransporterPort implements TransporterPortType {
 		throw new BadJobFault_Exception("Invalid job identifier", faultInfo);
 	}
 	
-	// auxiliary function to create a unic job identifier
-	private int generateJobId() {
-		_jobCounter++;
-		return _jobCounter;
-	}
-	
 	// auxiliary function to check the tranporter's possible working locations
 	private boolean verifyLocation(String location) throws BadLocationFault_Exception {
 		// even, works north and center
@@ -119,7 +113,7 @@ public class TransporterPort implements TransporterPortType {
 		JobView job = new JobView();
 		
 		job.setCompanyName("UpaTransporter"+_id);
-		job.setJobIdentifier(Integer.toString(generateJobId()));
+		job.setJobIdentifier(Integer.toString(_jobCounter++);
 		job.setJobOrigin(origin);
 		job.setJobDestination(destination);
 		job.setJobState(JobStateView.PROPOSED);

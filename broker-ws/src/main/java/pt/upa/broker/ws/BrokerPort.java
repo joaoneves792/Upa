@@ -192,7 +192,7 @@ public class BrokerPort implements BrokerPortType {
     	return _transportList;
     }
 
-	@Override //TODO: Clear Transporters job lists
+	@Override
     public void clearTransports() {
     	_transportList.clear();
 		try{

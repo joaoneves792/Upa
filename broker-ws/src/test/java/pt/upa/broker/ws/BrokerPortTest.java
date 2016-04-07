@@ -34,6 +34,7 @@ public class BrokerPortTest {
 
     private final String FAILED_JOB = "FAILED";
     private final String BOOKED_JOB = "BOOKED";
+    private final String INVALID_ID = "-1";
 
     private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
 
@@ -353,7 +354,73 @@ public class BrokerPortTest {
         assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
     }
 
+	/*
+	viewTransport Test cases
+	*/
 
+    @Test(expected = UnknownTransportFault_Exception.class)
+	public void viewTransportInvalidId() throws Exception {
+	    new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (_uddi);
+
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (_transporterList);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (_client);
+
+                _client.getPort();
+                result = (_tpt);
+
+                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (_underpricedJob);
+
+                _tpt.decideJob((String) any, true);
+                result = (_acceptedJob);
+
+            }
+        };
+        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_broker.viewTransport(INVALID_ID);
+	}
+
+	@Test
+	public void viewTransportSucess() throws Exception {
+	    new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (_uddi);
+
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                result = (_transporterList);
+
+                new TransporterClient(BOGUS_URL, (String) any);
+                result = (_client);
+
+                _client.getPort();
+                result = (_tpt);
+
+                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (_underpricedJob);
+
+                _tpt.decideJob((String) any, true);
+                result = (_acceptedJob);
+
+            }
+        };
+        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView t = _broker.viewTransport("0");
+		assertEquals(t.getClass(), TransportView.class);
+        assertEquals(t.getDestination(), VALID_DESTINATION);
+        assertEquals(t.getOrigin(), VALID_ORIGIN);
+        assertEquals(t.getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertTrue(t.getPrice() <= VALID_PRICE);
+        assertEquals(t.getState(), TransportStateView.BOOKED);
+        assertEquals(t.getId(), "0");
+	}
+	
     /*
     listTransport Test cases
     */
