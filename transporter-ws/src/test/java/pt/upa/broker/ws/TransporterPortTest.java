@@ -32,12 +32,49 @@ public class TransporterPortTest {
     }
 
 	/*
+	decideJob test cases
+	*/
+
+    @Test(expected = BadJobFault_Exception.class)
+	public void decideJobEmptyList() throws Exception {
+		_transporter.decideJob("0", true);
+	}
+
+    @Test(expected = BadJobFault_Exception.class)
+	public void decideJobInvalidId() throws Exception {
+        _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_transporter.decideJob(INVALID_ID, true);
+	}
+
+    @Test(expected = BadJobFault_Exception.class)
+    public void decideJobInvalidState() throws Exception {
+        JobView job = _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		job.setJobState(JobStateView.ACCEPTED); //Points to the same object as the one on the list
+		_transporter.decideJob("0", true);
+	}
+
+    @Test
+    public void decideJobSucessOnReject() throws Exception {
+        _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		assertEquals("Returned job state is not REJECTED",
+				_transporter.decideJob("0", false).getJobState(), JobStateView.REJECTED);
+	}
+	
+	@Test
+    public void decideJobSucessOnAccept() throws Exception {
+        _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		assertEquals("Returned job state is not ACCEPTED",
+				_transporter.decideJob("0", true).getJobState(), JobStateView.ACCEPTED);
+	}
+	
+
+	/*
 	jobStatus test cases
 	*/
 
     @Test
 	public void jobStatusEmptyList() throws Exception {
-		_transporter.jobStatus(INVALID_ID);
+		_transporter.jobStatus("0");
 	}
 
     @Test
