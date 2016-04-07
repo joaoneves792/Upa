@@ -359,6 +359,11 @@ public class BrokerPortTest {
 	*/
 
     @Test(expected = UnknownTransportFault_Exception.class)
+	public void viewTransportEmptyList() throws Exception {
+		_broker.viewTransport("0");
+	}
+
+    @Test(expected = UnknownTransportFault_Exception.class)
 	public void viewTransportInvalidId() throws Exception {
 	    new Expectations() {
             {
@@ -379,7 +384,6 @@ public class BrokerPortTest {
 
                 _tpt.decideJob((String) any, true);
                 result = (_acceptedJob);
-
             }
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
@@ -407,7 +411,6 @@ public class BrokerPortTest {
 
                 _tpt.decideJob((String) any, true);
                 result = (_acceptedJob);
-
             }
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
@@ -424,6 +427,11 @@ public class BrokerPortTest {
     /*
     listTransport Test cases
     */
+
+    @Test
+    public void listTransportsEmptyOnStart() throws Exception {
+        assertTrue("List not empty", _broker.listTransports().isEmpty());
+    }
 
     @Test
     public void listTransportsSuccess() throws Exception {
@@ -466,11 +474,6 @@ public class BrokerPortTest {
         assertEquals(tl.get(1).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
         assertTrue(tl.get(1).getPrice() <= VALID_PRICE);
         assertEquals(tl.get(1).getState(), TransportStateView.BOOKED);
-    }
-
-    @Test
-    public void listTransportsEmptyOnStart() {
-        assertTrue("List not empty", _broker.listTransports().isEmpty());
     }
 
     /*
