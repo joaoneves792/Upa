@@ -19,11 +19,11 @@ import java.util.Random;
 )
 public class TransporterPort implements TransporterPortType {
 	
-	int _id;
-	int _jobCounter;
-	List<JobView> _jobs = new ArrayList<JobView>();
+	private int _id;
+	private int _jobCounter;
+	private List<JobView> _jobs = new ArrayList<JobView>();
 	
-	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService.
+	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService (fix tests after).
 	public TransporterPort(int n) { _id = n; }
 	
 	// getters
@@ -113,7 +113,7 @@ public class TransporterPort implements TransporterPortType {
 		JobView job = new JobView();
 		
 		job.setCompanyName("UpaTransporter"+_id);
-		job.setJobIdentifier(Integer.toString(_jobCounter++);
+		job.setJobIdentifier(Integer.toString(_jobCounter++));
 		job.setJobOrigin(origin);
 		job.setJobDestination(destination);
 		job.setJobState(JobStateView.PROPOSED);
