@@ -23,7 +23,7 @@ public class TransporterPortTest {
 
     @Before
     public void setUp() {
-   		_transporter = new TransporterPort(1); //random id
+   		_transporter = new TransporterPort(1); //UpaTransporter1
     }
 
     @After
@@ -54,17 +54,29 @@ public class TransporterPortTest {
 	}
 
     @Test
-    public void decideJobSucessOnReject() throws Exception {
+    public void decideJobRejectSuccess() throws Exception {
         _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		assertEquals("Returned job state is not REJECTED",
-				_transporter.decideJob("0", false).getJobState(), JobStateView.REJECTED);
+				JobStateView.REJECTED, _transporter.decideJob("0", false).getJobState());
 	}
 	
 	@Test
-    public void decideJobSucessOnAccept() throws Exception {
+    public void decideJobAcceptSuccess() throws Exception {
+   		_transporter.setJobMinTime(100);
+        _transporter.setJobMaxTime(130);
         _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        JobView job = _transporter.decideJob("0", true);
 		assertEquals("Returned job state is not ACCEPTED",
-				_transporter.decideJob("0", true).getJobState(), JobStateView.ACCEPTED);
+				JobStateView.ACCEPTED, job.getJobState());
+		Thread.sleep(135);
+		assertEquals("Job state didn't change to HEADING after given time",
+				JobStateView.HEADING, job.getJobState());
+		Thread.sleep(265);
+		assertEquals("Job state didn't change to ONGOING after given time",
+				JobStateView.ONGOING, job.getJobState());
+		Thread.sleep(395);
+		assertEquals("Job state didn't change to COMPLETED after given time",
+				JobStateView.COMPLETED, job.getJobState());
 	}
 	
 
@@ -84,7 +96,7 @@ public class TransporterPortTest {
 	}
 	
 	@Test
-	public void jobStatusSucess() throws Exception {
+	public void jobStatusSuccess() throws Exception {
 		JobView expectedJob = _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		assertSame("Returned jobView is not correct", _transporter.jobStatus("0"), expectedJob);
 

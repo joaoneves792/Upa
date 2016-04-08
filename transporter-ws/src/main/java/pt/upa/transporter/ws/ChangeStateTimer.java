@@ -9,10 +9,14 @@ public class ChangeStateTimer extends TimerTask {
 	
 	JobView _job;
 	Timer _timer;
+	int _maxTime;
+	int _minTime;
 	
-	public ChangeStateTimer(JobView job, Timer timer) {
+	public ChangeStateTimer(JobView job, Timer timer, int minTime, int maxTime) {
 		_job = job;
 		_timer = timer;
+		_minTime = minTime;
+		_maxTime = maxTime;
 	}
 	
 	@Override
@@ -21,7 +25,7 @@ public class ChangeStateTimer extends TimerTask {
 			System.out.println(_job.getJobIdentifier() + " ACCEPTED -> HEADING");
 			_job.setJobState(JobStateView.HEADING);
 			Timer newTimer = new Timer();
-			newTimer.schedule(new ChangeStateTimer(_job, newTimer), new Random().nextInt(5000));
+			newTimer.schedule(new ChangeStateTimer(_job, newTimer, _minTime, _maxTime), _minTime + (new Random().nextInt(_maxTime - _minTime)));
 			_timer.cancel();
 
 		} else {
@@ -29,7 +33,7 @@ public class ChangeStateTimer extends TimerTask {
 				System.out.println(_job.getJobIdentifier() + " HEADING -> ONGOING");
 				_job.setJobState(JobStateView.ONGOING);
 				Timer newTimer = new Timer();
-				newTimer.schedule(new ChangeStateTimer(_job, newTimer), new Random().nextInt(5000));
+				newTimer.schedule(new ChangeStateTimer(_job, newTimer, _minTime, _maxTime), _minTime + (new Random().nextInt(_maxTime - _minTime)));
 				_timer.cancel();
 				
 			} else {

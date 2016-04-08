@@ -22,14 +22,23 @@ public class TransporterPort implements TransporterPortType {
 	
 	private int _id;
 	private int _jobCounter;
+	private int _jobMinTime;
+	private int _jobMaxTime;
 	private List<JobView> _jobs = new ArrayList<JobView>();
 	
-	// so that the tranporter knows whether it is even or odd. needing fix for name in @WebService (fix tests after).
-	public TransporterPort(int n) { _id = n; _jobCounter = 0; }
+	// so that the tranporter knows whether it is even or odd.
+	public TransporterPort(int n) {
+		_id = n;
+		_jobCounter = 0;
+		_jobMinTime = 0;
+		_jobMaxTime = 5000;
+	}
 	
 	// getters
-	public int getId() { return _id; };
-	public int getJobCounter() { return _jobCounter; };
+	public int getId() { return _id; }
+	public int getJobCounter() { return _jobCounter; }
+	public int getJobMinTime() { return _jobMinTime; }
+	public int getJobMaxTime() { return _jobMaxTime; }
 
 	private JobView getJob(String id)
 			throws BadJobFault_Exception {
@@ -42,6 +51,10 @@ public class TransporterPort implements TransporterPortType {
 		faultInfo.setId(id);
 		throw new BadJobFault_Exception("Invalid job identifier ", faultInfo);
 	}
+	
+	// setters
+	public void setJobMaxTime(int time) { _jobMaxTime = time; } //hack for the tests involving timers
+	public void setJobMinTime(int time) { _jobMinTime = time; } //hack for the tests involving timers
 	
 	// auxiliary function to check the tranporter's possible working locations
 	private boolean verifyLocation(String location) throws BadLocationFault_Exception {
@@ -140,8 +153,6 @@ public class TransporterPort implements TransporterPortType {
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
     		
-
-		
 		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
 		
@@ -151,8 +162,7 @@ public class TransporterPort implements TransporterPortType {
 		if (accept) {
 			job.setJobState(JobStateView.ACCEPTED);
 			Timer timer = new Timer();
-			timer.schedule(new ChangeStateTimer(job, timer), new Random().nextInt(5000));
-			
+			timer.schedule(new ChangeStateTimer(job, timer, _jobMinTime, _jobMaxTime), _jobMinTime + (new Random().nextInt(_jobMaxTime - _jobMinTime)));
 		} else {
 			job.setJobState(JobStateView.REJECTED);
 		}

@@ -48,7 +48,7 @@ public class TransporterClientApplication {
 // 			} catch (Exception  e) {
 // 				System.out.println("requestJob() failed: " + e.getMessage());
 // 			}
-// 		
+//
 // 		System.out.println();
 // 		for(int t=128; t>-100; t = t-60)
 // 			try {
@@ -62,17 +62,17 @@ public class TransporterClientApplication {
 // 					case -52: System.out.println("requestJob(Evora,Braga,"+t+"): "
 // 											+ tclient.port.requestJob("Evora", "Braga", t)); break;
 // 				}
-// 				
+//
 // 			} catch (Exception  e) {
 // 				System.out.println("requestJob() failed: " + e.getMessage());
 // 			}
-// 		
+//
 // 		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
-// 		
+//
 // 		System.out.println("\nclearJobs(): "); tclient.port.clearJobs();
-// 		
+//
 // 		System.out.println("\nlistJobs(): " + tclient.port.listJobs());
-// 		
+//
 // 		System.out.println();
 
 	}
