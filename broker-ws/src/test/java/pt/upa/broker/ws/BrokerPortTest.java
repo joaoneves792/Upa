@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 public class BrokerPortTest {
 
 
-    private final String BOGUS_URL = "http://this.is.a.bogus.url/service";
+    private final String BOGUS_URL = "http://this.is.a.bogus.url:9090";
     private final String VALID_ORIGIN = "Lisboa";
     private final String VALID_DESTINATION = "Leiria";
     private final String INVALID_ORIGIN = "Alameda";
@@ -129,7 +129,7 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (new JAXRException());
             }
         };
@@ -143,7 +143,7 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (new ArrayList<String>());
             }
         };
@@ -157,10 +157,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -181,10 +181,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -205,10 +205,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -229,10 +229,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -253,10 +253,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -280,10 +280,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -307,10 +307,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -334,10 +334,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -370,10 +370,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -397,10 +397,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -440,10 +440,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
@@ -487,10 +487,10 @@ public class BrokerPortTest {
                 new UDDINaming((String) any);
                 result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "*");
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
                 result = (_transporterList);
 
-                new TransporterClient(BOGUS_URL, (String) any);
+                new TransporterClient((String) any);
                 result = (_client);
 
                 _client.getPort();
