@@ -30,7 +30,7 @@ public class BrokerPort implements BrokerPortType {
 	private String _uddiLocation;
 	private int _idCounter;
 
-	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter*";
+	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter_";
 
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
@@ -58,8 +58,8 @@ public class BrokerPort implements BrokerPortType {
 
 			for (String transporter : transporters) {
 				try{
-					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
-					result = client.getPort().ping(result);
+					TransporterClient client = new TransporterClient(transporter);
+					result = client.port.ping(result);
 				}catch (JAXRException e){
 					result += " " + transporter + " failed! ";
 				}
@@ -127,7 +127,7 @@ public class BrokerPort implements BrokerPortType {
 
 			for(String transporter : transporters) {
 				try {
-					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
+					TransporterClient client = new TransporterClient(transporter);
 
 					JobView job = client.getPort().requestJob(origin, destination, price);
 					if (null != job)
@@ -200,7 +200,7 @@ public class BrokerPort implements BrokerPortType {
 
 			for(String transporter : transporters) {
 				try{
-					(new TransporterClient(_uddiLocation, transporter)).getPort().clearJobs();
+					(new TransporterClient(transporter)).getPort().clearJobs();
 				}catch (JAXRException e){
 					//Nothing we can do here, just move on to the next transporter...
 				}

@@ -40,7 +40,25 @@ public class TransporterClient {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);	
 	}
-	
+
+	public TransporterClient(String endpointAddress)throws JAXRException {
+		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
+
+		if (endpointAddress == null) {
+			System.out.println("Null endpoint Address!");
+			return;
+		}
+
+		System.out.println("Creating stub ...");
+		TransporterService service = new TransporterService();
+		this.port = service.getTransporterPort();
+
+		System.out.println("Setting endpoint address ...");
+		BindingProvider bindingProvider = (BindingProvider) port;
+		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+	}
+
 	public TransporterPortType getPort(){
 		return port;
 	}
