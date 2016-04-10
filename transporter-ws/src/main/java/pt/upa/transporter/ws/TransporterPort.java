@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
+import java.util.TimerTask;
 
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
@@ -26,11 +27,27 @@ public class TransporterPort implements TransporterPortType {
 	private int _jobMaxTime;
 	private List<JobView> _jobs = new ArrayList<JobView>();
 	
+	// private timer task definition
+	private class ChangeStateTask extends TimerTask {
+		JobView _job;
+		JobStateView _state;
+		
+		public ChangeStateTask(JobView job, JobStateView state) {
+			_job = job;
+			_state = state;
+		}
+		
+		@Override
+		public void run() {
+			_job.setJobState(_state);
+		}
+	}
+	
 	// so that the tranporter knows whether it is even or odd.
 	public TransporterPort(int n) {
 		_id = n;
 		_jobCounter = 0;
-		_jobMinTime = 0;
+		_jobMinTime = 1000;
 		_jobMaxTime = 5000;
 	}
 	
@@ -95,6 +112,10 @@ public class TransporterPort implements TransporterPortType {
 		throw new BadJobFault_Exception("Invalid job status", faultInfo);
 	}
 	
+	// auxiliary function to pick random time
+	private int pickRandomTime() {
+		return _jobMinTime + (new Random().nextInt(_jobMaxTime - _jobMinTime));
+	}
 	
 	@Override
 	public String ping(String name) {
@@ -161,8 +182,14 @@ public class TransporterPort implements TransporterPortType {
 		// change job state to accepted or rejected
 		if (accept) {
 			job.setJobState(JobStateView.ACCEPTED);
+			
+			// set job timers
+			int time = 0;
 			Timer timer = new Timer();
-			timer.schedule(new ChangeStateTimer(job, timer, _jobMinTime, _jobMaxTime), _jobMinTime + (new Random().nextInt(_jobMaxTime - _jobMinTime)));
+			timer.schedule(new ChangeStateTask(job, JobStateView.HEADING), time += pickRandomTime());
+			timer.schedule(new ChangeStateTask(job, JobStateView.ONGOING), time += pickRandomTime());
+			timer.schedule(new ChangeStateTask(job, JobStateView.COMPLETED), time += pickRandomTime());
+			
 		} else {
 			job.setJobState(JobStateView.REJECTED);
 		}
