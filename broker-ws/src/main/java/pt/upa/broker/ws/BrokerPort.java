@@ -193,7 +193,7 @@ public class BrokerPort implements BrokerPortType {
     }
 
 	@Override
-    public void clearTransports() {
+    public void clearTransports() { //Should we reset the id counter?
     	_transportList.clear();
 		try{
 			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX);

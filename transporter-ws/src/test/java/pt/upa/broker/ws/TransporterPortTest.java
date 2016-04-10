@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNull;
 
 import java.util.TimerTask;
 import java.util.Timer;
+import java.util.List;
 
 public class TransporterPortTest {
 	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
@@ -128,7 +129,39 @@ public class TransporterPortTest {
 	public void jobStatusSuccess() throws Exception {
 		JobView expectedJob = _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		assertSame("Returned jobView is not correct.", _transporter.jobStatus("0"), expectedJob);
+	}
 
+
+	/*
+	listJobs test cases
+	*/
+	
+	@Test
+	public void listJobsSuccess() throws Exception {
+		assertEquals("Job list size is not correct", 0, _transporter.listJobs().size());
+		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		assertEquals("Job list size is not correct", 1, _transporter.listJobs().size());
+		
+		JobView job = _transporter.listJobs().get(0);
+		assertEquals("Job list element is not correct", "UpaTransporter1", job.getCompanyName());
+		assertEquals("Job list element is not correct", VALID_ORIGIN, job.getJobOrigin());
+		assertEquals("Job list element is not correct", VALID_DESTINATION, job.getJobDestination());
+		assertEquals("Job list element is not correct", JobStateView.PROPOSED, job.getJobState());
+				
+		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		assertEquals("Job list size is not correct", 2, _transporter.listJobs().size());
+	}
+	
+	/*
+	clearJobs test cases
+	*/
+	
+	@Test
+	public void clearJobsSuccess() throws Exception {
+		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_transporter.clearJobs();
+		assertEquals("Job list should be empty", 0, _transporter.listJobs().size());
 	}
 	
 }
