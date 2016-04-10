@@ -16,12 +16,21 @@ import java.util.Timer;
 import java.util.List;
 
 public class TransporterPortTest {
-	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
 	private final String INVALID_ID = "-1";
+	
 	private final String VALID_ORIGIN = "Lisboa";
     private final String VALID_DESTINATION = "Leiria";
+    private final String INVALID_ORIGIN = "Alameda";
+    private final String INVALID_DESTINATION = "Porto Salvo";
+    private final String NORTH_LOCATION = "Porto";
+    private final String SOUTH_LOCATION = "Setubal";
 
-    private final int VALID_PRICE = 50;
+	private final int INVALID_PRICE = -1;
+	private final int VALID_PRICE = 50;
+    private final int EVEN_PRICE = 50;
+    private final int ODD_PRICE = 51;
+    private final int OVERPRICED_PRICE = 101;
+    private final int UNDERPRICED_PRICE = 9;
 	
     private TransporterPort _transporter;
     public boolean _error;
@@ -54,6 +63,56 @@ public class TransporterPortTest {
     public void tearDown() {
     	// empty for now
     }
+
+	/*
+	requestJob test cases
+	*/
+
+    @Test(expected = BadLocationFault_Exception.class)
+	public void requestJobUnknownOrigin() throws Exception {
+		_transporter.requestJob(INVALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+	}
+
+    @Test(expected = BadLocationFault_Exception.class)
+	public void requestJobUnknownDestination() throws Exception {
+		_transporter.requestJob(VALID_ORIGIN, INVALID_DESTINATION, VALID_PRICE);
+	}
+
+    @Test(expected = BadPriceFault_Exception.class)
+	public void requestJobInvalidPrive() throws Exception {
+		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, INVALID_PRICE);
+	}
+	
+	@Test
+	public void requestJobOddTransporterInvalidZone() throws Exception {
+		TransporterPort oddTransporter = new TransporterPort(3);
+		assertNull("Should return null for invalid origins.",
+				oddTransporter.requestJob(NORTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
+		assertNull("Should return null for invalid destinations.",
+				oddTransporter.requestJob(VALID_ORIGIN, NORTH_LOCATION, VALID_PRICE));
+	}
+
+	@Test
+	public void requestJobEvenTransporterInvalidZone() throws Exception {
+		TransporterPort evenTransporter = new TransporterPort(2);
+		assertNull("Should return null for invalid origins.",
+				evenTransporter.requestJob(SOUTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
+		assertNull("Should return null for invalid destinations.",
+				evenTransporter.requestJob(VALID_ORIGIN, SOUTH_LOCATION, VALID_PRICE));
+	}
+	
+	@Test
+	public void requestJobOverPricedOffer() throws Exception {
+		assertNull("Should return null for overpriced offers.",
+				_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, OVERPRICED_PRICE));
+	}
+	
+	@Test
+	public void requestJobUnderPricedOffer() throws Exception {
+		int price = _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, UNDERPRICED_PRICE).getJobPrice();
+		assertTrue("Should return lower value for underpriced offers.", price < UNDERPRICED_PRICE);
+		assertTrue("Job prices can't be negative.", price >= 0);
+	}
 
 	/*
 	decideJob test cases
@@ -122,7 +181,7 @@ public class TransporterPortTest {
     @Test
 	public void jobStatusInvalidId() throws Exception {
         _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		assertNull("Should return null.", _transporter.jobStatus(INVALID_ID));
+		assertNull("Should return null for invalid ids", _transporter.jobStatus(INVALID_ID));
 	}
 	
 	@Test
@@ -138,18 +197,18 @@ public class TransporterPortTest {
 	
 	@Test
 	public void listJobsSuccess() throws Exception {
-		assertEquals("Job list size is not correct", 0, _transporter.listJobs().size());
+		assertEquals("Job list size is not correct.", 0, _transporter.listJobs().size());
 		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		assertEquals("Job list size is not correct", 1, _transporter.listJobs().size());
+		assertEquals("Job list size is not correct.", 1, _transporter.listJobs().size());
 		
 		JobView job = _transporter.listJobs().get(0);
-		assertEquals("Job list element is not correct", "UpaTransporter1", job.getCompanyName());
-		assertEquals("Job list element is not correct", VALID_ORIGIN, job.getJobOrigin());
-		assertEquals("Job list element is not correct", VALID_DESTINATION, job.getJobDestination());
-		assertEquals("Job list element is not correct", JobStateView.PROPOSED, job.getJobState());
+		assertEquals("Job list element is not correct.", "UpaTransporter1", job.getCompanyName());
+		assertEquals("Job list element is not correct.", VALID_ORIGIN, job.getJobOrigin());
+		assertEquals("Job list element is not correct.", VALID_DESTINATION, job.getJobDestination());
+		assertEquals("Job list element is not correct.", JobStateView.PROPOSED, job.getJobState());
 				
 		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		assertEquals("Job list size is not correct", 2, _transporter.listJobs().size());
+		assertEquals("Job list size is not correct.", 2, _transporter.listJobs().size());
 	}
 	
 	/*
@@ -161,7 +220,7 @@ public class TransporterPortTest {
 		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_transporter.clearJobs();
-		assertEquals("Job list should be empty", 0, _transporter.listJobs().size());
+		assertEquals("Job list should be empty.", 0, _transporter.listJobs().size());
 	}
 	
 }
