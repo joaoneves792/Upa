@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.TimerTask;
@@ -103,15 +104,59 @@ public class TransporterPortTest {
 	
 	@Test
 	public void requestJobOverPricedOffer() throws Exception {
-		assertNull("Should return null for overpriced offers.",
+		assertNull("Should return null.",
 				_transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, OVERPRICED_PRICE));
 	}
 	
 	@Test
 	public void requestJobUnderPricedOffer() throws Exception {
 		int price = _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, UNDERPRICED_PRICE).getJobPrice();
-		assertTrue("Should return lower value for underpriced offers.", price < UNDERPRICED_PRICE);
+		assertTrue("Should return a price lower than original.", price < UNDERPRICED_PRICE);
 		assertTrue("Job prices can't be negative.", price >= 0);
+	}
+	
+	@Test
+	public void requestJobOddTransporterOddPrice() throws Exception {
+		int price = new TransporterPort(3).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
+		assertTrue("Should return a price lower than original.", price < ODD_PRICE);
+		assertTrue("Job prices can't be negative.", price >= 0);
+	}
+	
+	@Test
+	public void requestJobOddTransporterEvenPrice() throws Exception {
+		int price = new TransporterPort(3).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
+		assertTrue("Should return a price higher than original.", price > EVEN_PRICE);
+	}
+	
+	@Test
+	public void requestJobEvenTransporterOddPrice() throws Exception {
+		int price = new TransporterPort(2).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
+		assertTrue("Should return a price higher than original.", price > ODD_PRICE);
+	}
+	
+	@Test
+	public void requestJobEvenTransporterEvenPrice() throws Exception {
+		int price = new TransporterPort(2).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
+		assertTrue("Should return a price lower than original.", price < EVEN_PRICE);
+		assertTrue("Job prices can't be negative.", price >= 0);
+	}
+	
+	@Test
+	public void requestJobEvenTransporterSucess() throws Exception {
+		TransporterPort evenTransporter = new TransporterPort(2);
+		assertNotNull("Shouldn't return null for valid origins",
+				evenTransporter.requestJob(NORTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
+		assertNotNull("Shouldn't return null for valid destinations.",
+				evenTransporter.requestJob(VALID_ORIGIN, NORTH_LOCATION, VALID_PRICE));
+	}
+
+	@Test
+	public void requestJobOddTransporterSucess() throws Exception {
+		TransporterPort oddTransporter = new TransporterPort(3);
+		assertNotNull("Shouldn't return null for valid origins",
+				oddTransporter.requestJob(SOUTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
+		assertNotNull("Shouldn't return null for valid destinations.",
+				oddTransporter.requestJob(VALID_ORIGIN, SOUTH_LOCATION, VALID_PRICE));
 	}
 
 	/*
