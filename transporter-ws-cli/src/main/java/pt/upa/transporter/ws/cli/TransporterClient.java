@@ -16,44 +16,44 @@ public class TransporterClient {
 	public TransporterPortType port;
 	
 	public TransporterClient(String uddiURL, String name) throws JAXRException {
-		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
+		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 		
-		System.out.printf("Contacting UDDI at %s%n", uddiURL);
+		//System.out.printf("Contacting UDDI at %s%n", uddiURL);
 		UDDINaming uddiNaming = new UDDINaming(uddiURL);
 
-		System.out.printf("Looking for '%s'%n", name);
+		//System.out.printf("Looking for '%s'%n", name);
 		String endpointAddress = uddiNaming.lookup(name);
 
 		if (endpointAddress == null) {
-			System.out.println("Not found!");
+			System.out.println(name + " not found!");
 			return;
 		} else {
-			System.out.printf("Found %s%n", endpointAddress);
+			//System.out.printf("Found %s%n", endpointAddress);
 		}
 
-		System.out.println("Creating stub ...");
+		//System.out.println("Creating stub ...");
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 
-		System.out.println("Setting endpoint address ...");
+		//System.out.println("Setting endpoint address ...");
 		BindingProvider bindingProvider = (BindingProvider) port;
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 	}
 
 	public TransporterClient(String endpointAddress) throws JAXRException {
-		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
+		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 
 		if (endpointAddress == null) {
 			System.out.println("Null endpoint Address!");
 			return;
 		}
 
-		System.out.println("Creating stub ...");
+		//System.out.println("Creating stub ...");
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 
-		System.out.println("Setting endpoint address ...");
+		//System.out.println("Setting endpoint address ...");
 		BindingProvider bindingProvider = (BindingProvider) port;
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
@@ -62,40 +62,5 @@ public class TransporterClient {
 	public TransporterPortType getPort(){
 		return port;
 	}
-	
-	
-	
-/*
-	// don't this is necessary. it requires a bunch of imports
-	
-	public String ping(String name) {
-		return port.ping(name);
-	}
-	
-    public JobView requestJob(String origin, String destination, int price)
-			throws BadLocationFault_Exception, BadPriceFault_Exception {
-		
-		return port.requestJob(origin, destination, price);
-	}
-	
-    public JobView decideJob(String id,boolean accept)
-			throws BadJobFault_Exception {
-		
-    	return port.decideJob(id, accept);
-    }
-	
-	public JobView jobStatus(String id) {
-		return port.jobStatus(id);
-	}
-	
-	public List<JobView> listJobs() {
-		return port.listJobs();
-	}
-	
-	public void clearJobs() {
-		port.clearJobs();
-	}
-	
-*/
 
 }

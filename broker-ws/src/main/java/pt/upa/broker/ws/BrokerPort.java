@@ -199,7 +199,7 @@ public class BrokerPort implements BrokerPortType {
 	private void bookJob(TransportView transport) {
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
-			JobView job = client.getPort().decideJob(transport.getId(), true);
+			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
 			if(null != job && job.getJobState() == JobStateView.ACCEPTED)
 				transport.setState(TransportStateView.BOOKED);
 			else

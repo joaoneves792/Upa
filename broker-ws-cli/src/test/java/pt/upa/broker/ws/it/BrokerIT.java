@@ -19,9 +19,9 @@ import static org.junit.Assert.*;
 
 /**
  *  Integration Test
- *  
+ *
  *  Invoked by Maven in the "verify" life-cycle phase
- *  Should invoke "live" remote servers 
+ *  Should invoke "live" remote servers
  */
 public class BrokerIT {
 
@@ -62,17 +62,17 @@ public class BrokerIT {
 			_broker = new BrokerPort(UDDI_URL);
 			_brokerEndpoint = Endpoint.create(_broker);
 
-			System.out.printf("Starting %s%n", BROKER_URL);
+			//System.out.printf("Starting %s%n", BROKER_URL);
 			_brokerEndpoint.publish(BROKER_URL);
 			
-			System.out.printf("Publishing '%s' to UDDI at %s%n", BROKER_NAME, UDDI_URL);
+			//System.out.printf("Publishing '%s' to UDDI at %s%n", BROKER_NAME, UDDI_URL);
 			_uddiNaming = new UDDINaming(UDDI_URL);
 			_uddiNaming.rebind(BROKER_NAME, BROKER_URL);
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
 			e.printStackTrace();
-		} 
+		}
 	}
 	
 	private void stopBroker() {
@@ -94,14 +94,14 @@ public class BrokerIT {
 		String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
 		
 		try {
-			System.out.printf("Starting %s%n", TRANSPORTER_URL);
+			//System.out.printf("Starting %s%n", TRANSPORTER_URL);
 			TransporterPort port = new TransporterPort(id);
 			Endpoint endpoint = Endpoint.create(port);
 			
 			_transporters.put(id , port);
 			_transporterEndpoints.put(id, endpoint);
 			
-			System.out.printf("Publishing '%s' to UDDI at %s%n", TRANSPORTER_NAME, UDDI_URL);
+			//System.out.printf("Publishing '%s' to UDDI at %s%n", TRANSPORTER_NAME, UDDI_URL);
 			endpoint.publish(TRANSPORTER_URL);
 
 			_uddiNaming = new UDDINaming(UDDI_URL);
@@ -329,7 +329,7 @@ public class BrokerIT {
             }
         };
         assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
-    }    
+    }
     
     
     @Test(expected = UnknownTransportFault_Exception.class)
