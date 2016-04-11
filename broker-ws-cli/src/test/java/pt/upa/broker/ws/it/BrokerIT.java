@@ -63,14 +63,14 @@ public class BrokerIT {
 	
 	private Endpoint _brokerEndpoint;
 	
-	//private Map<Integer, Endpoint> _transporterEndpoints = new TreeMap<Integer, Endpoint>();
-	//private Map<Integer, TransporterPort> _transporters = new TreeMap<Integer, TransporterPort>();
+	// private Map<Integer, Endpoint> _transporterEndpoints = new TreeMap<Integer, Endpoint>();
+	// private Map<Integer, TransporterPort> _transporters = new TreeMap<Integer, TransporterPort>();
 	
 	private BrokerPortType _broker;
 	
 // functions //
 
-	private void startBroker() {
+/*	private void startBroker() {
 		try {
 			_uddiNaming = new UDDINaming(UDDI_URL);
 
@@ -142,7 +142,7 @@ public class BrokerIT {
 				_uddiNaming.unbind(TRANSPORTER_NAME);
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
-	}
+	}*/
 	
 // one-time initialization and clean-up //
     @BeforeClass
@@ -156,10 +156,11 @@ public class BrokerIT {
     @Before
     public void setUp() throws Exception {
 		_broker = new BrokerClient(UDDI_URL, BROKER_NAME).getPort();
-		_transporter1 = new TransporterClient(UDDI_URL, TRANSPORTER_ONE_NAME).getPort();
-		_transporter2 = new TransporterClient(UDDI_URL, TRANSPORTER_TWO_NAME).getPort();
-		
 		_broker.clearTransports();
+
+		//_transporter1 = new TransporterClient(UDDI_URL, TRANSPORTER_ONE_NAME).getPort();
+		//_transporter2 = new TransporterClient(UDDI_URL, TRANSPORTER_TWO_NAME).getPort();
+
         //startBroker();
 		//startTransporter(1);
 		//startTransporter(2);
@@ -181,8 +182,7 @@ public class BrokerIT {
         assertTrue((result.equals(PING_RESPONSE + TRANSPORTER_ONE_NAME + " " + TRANSPORTER_TWO_NAME)) || (result.equals(PING_RESPONSE + TRANSPORTER_TWO_NAME + " " + TRANSPORTER_ONE_NAME)));
     }
 
-
-/*	@Test
+	@Test
     public void clearTransportsSuccess() throws Exception {
 		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
@@ -199,22 +199,13 @@ public class BrokerIT {
 		TransporterClient tClient;
 		List<JobView> jobList;
 
-<<<<<<< HEAD
-
 		for (String transporter : transporters) {
 			tClient = new TransporterClient(transporter);
 			jobList = tClient.port.listJobs();
-=======
-		
-		for(Map.Entry<Integer, TransporterPort> entry : _transporter.entrySet()) {
-			jobList = entry.getValue().listJobs();
-
->>>>>>> viewTransport tests done, timer tests had to be simplefied, closes #23
-		
 		
 			assertEquals(jobList.size(), 0);
 		}
-    }*/
+    }
     
     @Test(expected = UnavailableTransportFault_Exception.class)
     public void requestTransportNoneAvailableBadLocation() throws Exception {
