@@ -1,6 +1,20 @@
 package pt.upa.broker.ws.it;
 
 import org.junit.*;
+import javax.xml.ws.Endpoint;
+import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
+
+import pt.upa.transporter.ws.*;
+import pt.upa.transporter.ws.TransporterPort;
+
+import pt.upa.broker.ws.*;
+import pt.upa.broker.ws.BrokerPort;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import static org.junit.Assert.*;
 
 /**
@@ -9,25 +23,38 @@ import static org.junit.Assert.*;
  *  Invoked by Maven in the "verify" life-cycle phase
  *  Should invoke "live" remote servers 
  */
-public class ExampleIT {
+public class BrokerIT {
 
-// members //
-	
-	private UDDINaming _uddi;
+// static members //
 	private final String UDDI_URL = "http://localhost:9090";
 
-	private Endpoint _brokerEndpoint;
-	private BrokerPortType _broker;
 	private final String BROKER_NAME = "UpaBroker";
 	private final String BROKER_URL = "http://localhost:8080/broker-ws/endpoint";
 
-	private Endpoint _transporterEndpoint;
-	private TransporterPortType _transporter;
 	private final String TRANSPORTER_NAME_PREFIX = "UpaTransporter";
 	private final String TRANSPORTER_URL_PREFIX = "http://localhost:808";
 	private final String TRANSPORTER_URL_SUFIX = "/broker-ws/endpoint";
 
+	private final String VALID_ORIGIN = "Lisboa";
+    private final String VALID_DESTINATION = "Leiria";
+    private final String INVALID_ORIGIN = "Alameda";
+    private final String INVALID_DESTINATION = "Porto Salvo";
 
+    private final int VALID_PRICE = 100;
+    private final int INVALID_PRICE = -1;
+    private final int OVERPRICED_PRICE = 101;
+    private final int UNDERPRICED_PRICE = 99;
+    
+// members //
+	private UDDINaming _uddiNaming;
+	
+	private BrokerPort _broker;
+	private Endpoint _brokerEndpoint;
+	
+	private Map<Integer, Endpoint> _transporterEndpoints = new TreeMap<Integer, Endpoint>();
+	private Map<Integer, TransporterPort> _transporters = new TreeMap<Integer, TransporterPort>();
+	
+	
 // functions //
 
 	private void startBroker() {
@@ -35,10 +62,12 @@ public class ExampleIT {
 			_broker = new BrokerPort(UDDI_URL);
 			_brokerEndpoint = Endpoint.create(_broker);
 
+			System.out.printf("Starting %s%n", BROKER_URL);
 			_brokerEndpoint.publish(BROKER_URL);
-
-			uddiNaming = new UDDINaming(UDDI_URL);
-			uddiNaming.rebind(BROKER_NAME, BROKER_URL);
+			
+			System.out.printf("Publishing '%s' to UDDI at %s%n", BROKER_NAME, UDDI_URL);
+			_uddiNaming = new UDDINaming(UDDI_URL);
+			_uddiNaming.rebind(BROKER_NAME, BROKER_URL);
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
@@ -54,8 +83,8 @@ public class ExampleIT {
 			} catch (Exception e) { System.out.printf("Caught exception when stopping: %s%n", e); }
 			
 			try {
-				if (uddiNaming != null) {
-					uddiNaming.unbind(BROKER_NAME);
+				if (_uddiNaming != null) {
+					_uddiNaming.unbind(BROKER_NAME);
 				}
 			} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
@@ -65,63 +94,69 @@ public class ExampleIT {
 		String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
 		
 		try {
-			_transporter = new BrokerPort(UDDI_URL);
-			_transporterEndpoint = Endpoint.create(_transporter);
+			System.out.printf("Starting %s%n", TRANSPORTER_URL);
+			TransporterPort port = new TransporterPort(id);
+			_transporters.put(id , port);
+			
+			Endpoint endpoint = Endpoint.create(port);
+			_transporterEndpoints.put(id, endpoint);
+			
+			System.out.printf("Publishing '%s' to UDDI at %s%n", TRANSPORTER_NAME, UDDI_URL);
+			endpoint.publish(TRANSPORTER_URL + id);
 
-			_transporterEndpoint.publish(TRANSPORTER_URL + id);
-
-			uddiNaming = new UDDINaming(UDDI_URL);
-			uddiNaming.rebind(TRANSPORTER_NAME, TRANSPORTER_URL);
+			_uddiNaming = new UDDINaming(UDDI_URL);
+			_uddiNaming.rebind(TRANSPORTER_NAME, TRANSPORTER_URL);
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
 			e.printStackTrace();
-		} 
+		}
 	}
 
 	private void stopTransporter(int id) {
 		String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
 
 		try {
-			if (_transporterEndpoint != null) {
-				_transporterEndpoint.stop();
+			if (_transporterEndpoints.get(id) != null) {
+				_transporterEndpoints.get(id).stop();
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when stopping: %s%n", e); }
 		
 		try {
-			if (uddiNaming != null) {
-				uddiNaming.unbind(TRANSPORTER_NAME);
+			if (_uddiNaming != null) {
+				_uddiNaming.unbind(TRANSPORTER_NAME);
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
 
-    // one-time initialization and clean-up
+	
+// one-time initialization and clean-up //
     @BeforeClass
-    public static void oneTimeSetUp() {
-		startBroker();
-		startTransporter(1);
-    }
+    public static void oneTimeSetUp() { }
 
     @AfterClass
-    public static void oneTimeTearDown() {
-		stopBroker();
-		stopTransporter(1);
-    }
+    public static void oneTimeTearDown() { }
 
 
-    // initialization and clean-up for each test
-
+// initialization and clean-up for each test //
     @Before
     public void setUp() {
-    }
+		startBroker();
+		startTransporter(1);
+		startTransporter(2);
+	}
 
     @After
     public void tearDown() {
-    }
+   		stopBroker();
+		stopTransporter(1);
+		stopTransporter(2);
+	}
 
 
-    // tests
+// tests //
 
+/*
     @Test
     public void pingSuccess() {
 
@@ -161,8 +196,6 @@ public class ExampleIT {
         tl = _broker.listTransports();
         assertEquals(tl.size(), 0);
     }
-
-}
     
     
     @Test(expected = UnavailableTransportFault_Exception.class)
@@ -325,45 +358,23 @@ public class ExampleIT {
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_broker.viewTransport("0");
 	}
-    
+*/
     
     @Test
 	public void viewTransportSucess() throws Exception {
-	    new Expectations() {
-            {
-                new UDDINaming((String) any);
-                result = (_uddi);
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
-                result = (_transporterList);
-
-                new TransporterClient((String) any);
-                result = (_client);
-
-                _client.getPort();
-                result = (_tpt);
-
-                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result = (_underpricedJob);
-
-                _tpt.decideJob((String) any, true);
-                result = (_acceptedJob);
-                
-                _tpt.jobStatus((String) any);
-                result = (_acceptedJob);
-            }
-        };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport("0");
+		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_1");
+		
         assertEquals(t.getDestination(), VALID_DESTINATION);
         assertEquals(t.getOrigin(), VALID_ORIGIN);
-        assertEquals(t.getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertEquals(t.getTransporterCompany(), TRANSPORTER_NAME_PREFIX + "1");
         assertTrue(t.getPrice() <= VALID_PRICE);
         assertEquals(t.getState(), TransportStateView.BOOKED);
-        assertEquals(t.getId(), "0");
+        assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_1");
 	}
     
-    
+/*
 	@Test
     public void listTransportsSuccess() throws Exception {
         new Expectations() {
@@ -443,7 +454,6 @@ public class ExampleIT {
 		assertFalse("Timer based change of states ain't working correctly.", _error);
 	}
 
-	
-    
+*/
 
 }

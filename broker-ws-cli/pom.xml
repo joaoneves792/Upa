@@ -54,6 +54,19 @@
             <artifactId>uddi-naming</artifactId>
             <version>1.0</version>
         </dependency>
+
+		<!-- Transporter -->
+        <dependency>
+           	<groupId>pt.upa.a45</groupId>
+   			<artifactId>transporter-ws</artifactId>
+   			<version>1.0-SNAPSHOT</version>
+        </dependency>
+		<!-- Broker -->
+        <dependency>
+           	<groupId>pt.upa.a45</groupId>
+   			<artifactId>broker-ws</artifactId>
+   			<version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -150,18 +163,6 @@
                     </programs>
                 </configuration>
             </plugin>
-			 <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.18.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>			
         </plugins>
     </build>
 
