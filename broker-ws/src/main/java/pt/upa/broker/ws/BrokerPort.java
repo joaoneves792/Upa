@@ -162,7 +162,7 @@ public class BrokerPort implements BrokerPortType {
 
 		bookJob(transport);
 
-		return (transport.getState() == TransportStateView.BOOKED)? "BOOKED": "FAILED";
+		return transport.getId();
     }
 
 	// returns a list of the jobs proposed by the transporters

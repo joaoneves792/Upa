@@ -29,8 +29,6 @@ public class BrokerPortTest {
     private final int OVERPRICED_PRICE = 101;
     private final int UNDERPRICED_PRICE = 99;
 
-    private final String FAILED_JOB = "FAILED";
-    private final String BOOKED_JOB = "BOOKED";
     private final String VALID_ID = TRANSPORTER_COMPANY_PREFIX + "1_0";
     private final String INVALID_ID = TRANSPORTER_COMPANY_PREFIX + "1_-1";
 
@@ -40,6 +38,7 @@ public class BrokerPortTest {
     private JobView _overpricedJob = new JobView();
     private JobView _underpricedJob = new JobView();
     private JobView _acceptedJob = new JobView();
+    private JobView _failedJob = new JobView();
 
     @Mocked
     private TransporterClient _client;
@@ -74,6 +73,13 @@ public class BrokerPortTest {
         _acceptedJob.setJobIdentifier("1");
         _acceptedJob.setJobPrice(UNDERPRICED_PRICE);
         _acceptedJob.setJobState(JobStateView.ACCEPTED);
+
+        _failedJob.setCompanyName(TRANSPORTER_COMPANY_PREFIX + "1");
+        _failedJob.setJobDestination(VALID_DESTINATION);
+        _failedJob.setJobOrigin(VALID_ORIGIN);
+        _failedJob.setJobIdentifier("1");
+        _failedJob.setJobPrice(UNDERPRICED_PRICE);
+        _failedJob.setJobState(JobStateView.REJECTED);
     }
 
     @After
@@ -263,9 +269,12 @@ public class BrokerPortTest {
                 _tpt.decideJob((String) any, true);
                 result = (new BadJobFault_Exception("", new BadJobFault()));
 
+                _tpt.jobStatus((String) any);
+                result = _failedJob;
             }
         };
-        assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        assertEquals("Booking should have failed", TransportStateView.FAILED, _broker.viewTransport(id).getState());
     }
 
     @Test
@@ -290,9 +299,13 @@ public class BrokerPortTest {
                 _tpt.decideJob((String) any, true);
                 result = (null);
 
+                _tpt.jobStatus((String) any);
+                result = _failedJob;
+
             }
         };
-        assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        assertEquals("Booking should have failed", TransportStateView.FAILED, _broker.viewTransport(id).getState());
     }
 
     @Test
@@ -317,9 +330,13 @@ public class BrokerPortTest {
                 _tpt.decideJob((String) any, true);
                 result = (new JAXRException());
 
+                _tpt.jobStatus((String) any);
+                result = new JAXRException();
+
             }
         };
-        assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), FAILED_JOB);
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        assertEquals("Booking should have failed", TransportStateView.FAILED, _broker.viewTransport(id).getState());
     }
 
     @Test
@@ -344,9 +361,13 @@ public class BrokerPortTest {
                 _tpt.decideJob((String) any, true);
                 result = (_acceptedJob);
 
+                _tpt.jobStatus((String) any);
+                result = (_acceptedJob);
+
             }
         };
-        assertEquals("Booking should not have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        assertEquals("Booking should not have failed", TransportStateView.BOOKED, _broker.viewTransport(id).getState());
     }
 
 	/*
@@ -443,12 +464,12 @@ public class BrokerPortTest {
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		TransportView t = _broker.viewTransport(TRANSPORTER_COMPANY_PREFIX + "1_1");
-        assertEquals(t.getDestination(), VALID_DESTINATION);
-        assertEquals(t.getOrigin(), VALID_ORIGIN);
-        assertEquals(t.getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertEquals(VALID_DESTINATION, t.getDestination());
+        assertEquals(VALID_ORIGIN, t.getOrigin());
+        assertEquals(TRANSPORTER_COMPANY_PREFIX + "1", t.getTransporterCompany());
         assertTrue(t.getPrice() <= VALID_PRICE);
-        assertEquals(t.getState(), TransportStateView.BOOKED);
-        assertEquals(t.getId(), TRANSPORTER_COMPANY_PREFIX + "1_1");
+        assertEquals(TransportStateView.BOOKED, t.getState() );
+        assertEquals(TRANSPORTER_COMPANY_PREFIX + "1_1", t.getId());
 	}
 	
     /*
@@ -486,21 +507,21 @@ public class BrokerPortTest {
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
         List<TransportView> tl = _broker.listTransports();
-        assertEquals("Should only have one job", tl.size(), 1);
-        assertEquals(tl.get(0).getDestination(), VALID_DESTINATION);
-        assertEquals(tl.get(0).getOrigin(), VALID_ORIGIN);
-        assertEquals(tl.get(0).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertEquals("Should only have one job", 1, tl.size());
+        assertEquals(VALID_DESTINATION, tl.get(0).getDestination());
+        assertEquals(VALID_ORIGIN, tl.get(0).getOrigin());
+        assertEquals(TRANSPORTER_COMPANY_PREFIX + "1", tl.get(0).getTransporterCompany());
         assertTrue(tl.get(0).getPrice() <= VALID_PRICE);
-        assertEquals(tl.get(0).getState(), TransportStateView.BOOKED);
+        assertEquals(TransportStateView.BOOKED, tl.get(0).getState());
 
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
         tl = _broker.listTransports();
-        assertEquals("Should have two jobs", tl.size(), 2);
-        assertEquals(tl.get(1).getDestination(), VALID_DESTINATION);
-        assertEquals(tl.get(1).getOrigin(), VALID_ORIGIN);
-        assertEquals(tl.get(1).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
+        assertEquals("Should have tow jobs", 2, tl.size());
+        assertEquals(VALID_DESTINATION, tl.get(1).getDestination());
+        assertEquals(VALID_ORIGIN, tl.get(1).getOrigin());
+        assertEquals(TRANSPORTER_COMPANY_PREFIX + "1", tl.get(1).getTransporterCompany());
         assertTrue(tl.get(1).getPrice() <= VALID_PRICE);
-        assertEquals(tl.get(1).getState(), TransportStateView.BOOKED);
+        assertEquals(TransportStateView.BOOKED, tl.get(1).getState());
     }
 
     /*
@@ -534,10 +555,10 @@ public class BrokerPortTest {
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
         List<TransportView> tl = _broker.listTransports();
-        assertEquals(tl.size(), 2);
+        assertEquals(2, tl.size());
         _broker.clearTransports();
         tl = _broker.listTransports();
-        assertEquals(tl.size(), 0);
+        assertEquals(0, tl.size());
     }
 
 }
