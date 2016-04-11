@@ -20,6 +20,7 @@ import java.util.TimerTask;
     serviceName="TransporterService"
 )
 public class TransporterPort implements TransporterPortType {
+	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
 	
 	private int _id;
 	private int _jobCounter;
@@ -76,7 +77,7 @@ public class TransporterPort implements TransporterPortType {
 					if(!Locations.south.contains(location)) {
 						BadLocationFault locationFault = new BadLocationFault();
 						locationFault.setLocation(location);
-						throw new BadLocationFault_Exception("unrecognised location: "+ location, locationFault);
+						throw new BadLocationFault_Exception("Unrecognised location: "+ location, locationFault);
 					} else
 						return false;
 						
@@ -87,7 +88,7 @@ public class TransporterPort implements TransporterPortType {
 					if(!Locations.north.contains(location)) {
 						BadLocationFault locationFault = new BadLocationFault();
 						locationFault.setLocation(location);
-						throw new BadLocationFault_Exception("unrecognised location: "+ location, locationFault);
+						throw new BadLocationFault_Exception("Unrecognised location: "+ location, locationFault);
 					} else
 						return false;
 		}
@@ -114,7 +115,7 @@ public class TransporterPort implements TransporterPortType {
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
-		return name + " UpaTransporter" + _id;
+		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
 	
@@ -131,7 +132,7 @@ public class TransporterPort implements TransporterPortType {
 		if(price < 0) {
 			BadPriceFault priceFault = new BadPriceFault();
 			priceFault.setPrice(price);
- 			throw new BadPriceFault_Exception("invalid price: "+ price, priceFault);
+ 			throw new BadPriceFault_Exception("Invalid price: "+ price, priceFault);
 		}
 		
 		// has to return null for prices over 100
@@ -141,7 +142,7 @@ public class TransporterPort implements TransporterPortType {
 
 		JobView job = new JobView();
 		
-		job.setCompanyName("UpaTransporter"+_id);
+		job.setCompanyName(TRANSPORTER_COMPANY_PREFIX+_id);
 		job.setJobIdentifier(Integer.toString(_jobCounter++));
 		job.setJobOrigin(origin);
 		job.setJobDestination(destination);

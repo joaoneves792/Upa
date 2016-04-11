@@ -15,11 +15,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by joao on 4/4/16.
- */
 public class BrokerPortTest {
-
+    private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
 
     private final String BOGUS_URL = "http://this.is.a.bogus.url:9090";
     private final String VALID_ORIGIN = "Lisboa";
@@ -34,10 +31,8 @@ public class BrokerPortTest {
 
     private final String FAILED_JOB = "FAILED";
     private final String BOOKED_JOB = "BOOKED";
-    private final String INVALID_ID = "-1";
-
-    private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
-
+    private final String VALID_ID = TRANSPORTER_COMPANY_PREFIX + "1_0";
+    private final String INVALID_ID = TRANSPORTER_COMPANY_PREFIX + "1_-1";
 
     private BrokerPort _broker;
 
@@ -62,21 +57,21 @@ public class BrokerPortTest {
         _overpricedJob.setCompanyName(TRANSPORTER_COMPANY_PREFIX + "1");
         _overpricedJob.setJobDestination(VALID_DESTINATION);
         _overpricedJob.setJobOrigin(VALID_ORIGIN);
-        _overpricedJob.setJobIdentifier("1");
+        _overpricedJob.setJobIdentifier("0");
         _overpricedJob.setJobPrice(OVERPRICED_PRICE);
         _overpricedJob.setJobState(JobStateView.PROPOSED);
 
         _underpricedJob.setCompanyName(TRANSPORTER_COMPANY_PREFIX + "1");
         _underpricedJob.setJobDestination(VALID_DESTINATION);
         _underpricedJob.setJobOrigin(VALID_ORIGIN);
-        _underpricedJob.setJobIdentifier("2");
+        _underpricedJob.setJobIdentifier("1");
         _underpricedJob.setJobPrice(UNDERPRICED_PRICE);
         _underpricedJob.setJobState(JobStateView.PROPOSED);
 
         _acceptedJob.setCompanyName(TRANSPORTER_COMPANY_PREFIX + "1");
         _acceptedJob.setJobDestination(VALID_DESTINATION);
         _acceptedJob.setJobOrigin(VALID_ORIGIN);
-        _acceptedJob.setJobIdentifier("2");
+        _acceptedJob.setJobIdentifier("1");
         _acceptedJob.setJobPrice(UNDERPRICED_PRICE);
         _acceptedJob.setJobState(JobStateView.ACCEPTED);
     }
@@ -360,7 +355,7 @@ public class BrokerPortTest {
 
     @Test(expected = UnknownTransportFault_Exception.class)
 	public void viewTransportEmptyList() throws Exception {
-		_broker.viewTransport("0");
+		_broker.viewTransport(VALID_ID);
 	}
 
     @Test(expected = UnknownTransportFault_Exception.class)
@@ -417,7 +412,7 @@ public class BrokerPortTest {
             }
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		_broker.viewTransport("0");
+		_broker.viewTransport(TRANSPORTER_COMPANY_PREFIX + "1_1");
 	}
 
 	@Test
@@ -447,13 +442,13 @@ public class BrokerPortTest {
             }
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport("0");
+		TransportView t = _broker.viewTransport(TRANSPORTER_COMPANY_PREFIX + "1_1");
         assertEquals(t.getDestination(), VALID_DESTINATION);
         assertEquals(t.getOrigin(), VALID_ORIGIN);
         assertEquals(t.getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
         assertTrue(t.getPrice() <= VALID_PRICE);
         assertEquals(t.getState(), TransportStateView.BOOKED);
-        assertEquals(t.getId(), "0");
+        assertEquals(t.getId(), TRANSPORTER_COMPANY_PREFIX + "1_1");
 	}
 	
     /*

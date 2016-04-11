@@ -25,16 +25,13 @@ import pt.upa.transporter.ws.cli.TransporterClient;
     serviceName="BrokerService"
 )
 public class BrokerPort implements BrokerPortType {
-	
+	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
+
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
-	private int _idCounter;
-
-	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter_";
 
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
-		_idCounter = 0;
 	}
 	
 	// auxiliary function to get transport with given id
@@ -67,6 +64,16 @@ public class BrokerPort implements BrokerPortType {
 		return null;
 	}
 	
+	// auxiliary function to convert transporter id to broker id
+	private String jobIdToTransportId(JobView job) {
+		return job.getCompanyName() + "_" + job.getJobIdentifier();
+	}
+
+	// auxiliary function to convert broker id to transport id
+	private String transportIdToJobId(TransportView transport) {
+		return transport.getId().split("_")[1];
+	}
+	
 	// auxiliary function to check if a location is valid
 	private void verifyLocation(String location) throws UnknownLocationFault_Exception {
 		if(Locations.north.contains(location) || Locations.center.contains(location) || Locations.south.contains(location))
@@ -84,7 +91,7 @@ public class BrokerPort implements BrokerPortType {
 		budgetedTransport.setPrice(chosenJob.getJobPrice());
 		budgetedTransport.setTransporterCompany(chosenJob.getCompanyName());
 		budgetedTransport.setState(TransportStateView.BUDGETED);
-		budgetedTransport.setId(Integer.toString(_idCounter++));
+		budgetedTransport.setId(jobIdToTransportId(chosenJob));
 		return budgetedTransport;
 	}
 	
@@ -94,7 +101,7 @@ public class BrokerPort implements BrokerPortType {
 		String result = name + " UpaBroker";
 		try {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
-			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
 
 			for (String transporter : transporters) {
 				try{
@@ -163,7 +170,7 @@ public class BrokerPort implements BrokerPortType {
 		List<JobView> availableJobs = new ArrayList<>();
 		try{
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
-			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
 
 			for(String transporter : transporters) {
 				try {
@@ -210,7 +217,8 @@ public class BrokerPort implements BrokerPortType {
         TransportView transport = getTransport(id);
         
        	try{
-			job = new TransporterClient(_uddiLocation, transport.getTransporterCompany()).getPort().jobStatus(id);
+			job = new TransporterClient(_uddiLocation,
+					transport.getTransporterCompany()).getPort().jobStatus(transportIdToJobId(transport));
 		}catch (JAXRException e){
 			// if unable to connect to transporter return job as it is
 			return transport;
@@ -237,9 +245,8 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public void clearTransports() {
     	_transportList.clear();
-    	_idCounter = 0;
 		try{
-			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX);
+			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX + "_");
 
 			for(String transporter : transporters) {
 				try{
