@@ -96,13 +96,13 @@ public class BrokerIT {
 		try {
 			System.out.printf("Starting %s%n", TRANSPORTER_URL);
 			TransporterPort port = new TransporterPort(id);
-			_transporters.put(id , port);
-			
 			Endpoint endpoint = Endpoint.create(port);
+			
+			_transporters.put(id , port);
 			_transporterEndpoints.put(id, endpoint);
 			
 			System.out.printf("Publishing '%s' to UDDI at %s%n", TRANSPORTER_NAME, UDDI_URL);
-			endpoint.publish(TRANSPORTER_URL + id);
+			endpoint.publish(TRANSPORTER_URL);
 
 			_uddiNaming = new UDDINaming(UDDI_URL);
 			_uddiNaming.rebind(TRANSPORTER_NAME, TRANSPORTER_URL);
@@ -128,14 +128,6 @@ public class BrokerIT {
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
-	
-	
-// 	public void dircoverBroker() {
-// 		_uddiNaming = new UDDINaming(UDDI_URL);
-// 		_brokerEndpoint = Endpoint.create(_broker);
-// 		
-// 
-// 	}
 
 	
 	
@@ -152,17 +144,16 @@ public class BrokerIT {
 // initialization and clean-up for each test //
     @Before
     public void setUp() {
-		_broker = new BrokerPort(UDDI_URL);
-// 		startBroker();
-// 		startTransporter(1);
-// 		startTransporter(2);
+		startBroker();
+		startTransporter(1);
+		startTransporter(2);
 	}
 
     @After
     public void tearDown() {
-//    		stopBroker();
-// 		stopTransporter(1);
-// 		stopTransporter(2);
+   		stopBroker();
+		stopTransporter(1);
+		stopTransporter(2);
 	}
 
 
