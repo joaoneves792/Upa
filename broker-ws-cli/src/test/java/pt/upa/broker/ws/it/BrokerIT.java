@@ -45,6 +45,12 @@ public class BrokerIT {
     private final int INVALID_PRICE = -1;
     private final int OVERPRICED_PRICE = 101;
     private final int UNDERPRICED_PRICE = 9;
+
+	private final String TRANSPORTER_ONE_NAME = "UpaTransporter1";
+	private final String TRANSPORTER_TWO_NAME = "UpaTransporter2";
+
+	private final String PING_MESSAGE = "Found:";
+	private final String PING_RESPONSE = PING_MESSAGE + " "  + BROKER_NAME + " ";
     
 // members //
 	private UDDINaming _uddiNaming;
@@ -163,14 +169,12 @@ public class BrokerIT {
 
 // tests //
 
-/*
+
     @Test
     public void pingSuccess() {
-
-        // assertEquals(expected, actual);
-        // if the assert fails, the test fails
+		String result = _broker.ping(PING_MESSAGE);
+        assertTrue((result.equals(PING_RESPONSE + TRANSPORTER_ONE_NAME + " " + TRANSPORTER_TWO_NAME)) || (result.equals(PING_RESPONSE + TRANSPORTER_TWO_NAME + " " + TRANSPORTER_ONE_NAME)));
     }
-*/
 
 
 	@Test
