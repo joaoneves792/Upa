@@ -5,6 +5,8 @@ import javax.xml.ws.Endpoint;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import pt.upa.broker.ws.cli.BrokerClient;
+import pt.upa.transporter.ws.cli.TransporterClient;
+
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.TransporterPort;
 
@@ -12,6 +14,7 @@ import pt.upa.broker.ws.*;
 import pt.upa.broker.ws.BrokerPort;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Timer;
@@ -68,7 +71,6 @@ public class BrokerIT {
 // functions //
 
 	private void startBroker() {
-	/*
 		try {
 			_uddiNaming = new UDDINaming(UDDI_URL);
 
@@ -85,25 +87,25 @@ public class BrokerIT {
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
 			e.printStackTrace();
-		}*/
+		}
 	}
 	
 	private void stopBroker() {
-		/*	try {
-				if (_brokerEndpoint != null) {
-					_brokerEndpoint.stop();
-				}
-			} catch (Exception e) { System.out.printf("Caught exception when stopping: %s%n", e); }
-			
-			try {
-				if (_uddiNaming != null) {
-					_uddiNaming.unbind(BROKER_NAME);
-				}
-			} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }*/
+		try {
+			if (_brokerEndpoint != null) {
+				_brokerEndpoint.stop();
+			}
+		} catch (Exception e) { System.out.printf("Caught exception when stopping: %s%n", e); }
+		
+		try {
+			if (_uddiNaming != null) {
+				_uddiNaming.unbind(BROKER_NAME);
+			}
+		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
 	
 	private void startTransporter(int id) {
-		/*String TRANSPORTER_URL = TRANSPORTER_URL_PREFIX + id + TRANSPORTER_URL_SUFIX;
+		String TRANSPORTER_URL = TRANSPORTER_URL_PREFIX + id + TRANSPORTER_URL_SUFIX;
 		String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
 		
 		try {
@@ -123,11 +125,11 @@ public class BrokerIT {
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
 			e.printStackTrace();
-		}*/
+		}
 	}
 
 	private void stopTransporter(int id) {
-		/*String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
+		String TRANSPORTER_NAME = TRANSPORTER_NAME_PREFIX + id;
 
 		try {
 			if (_transporterEndpoints.get(id) != null) {
@@ -139,7 +141,7 @@ public class BrokerIT {
 			if (_uddiNaming != null && _transporters.get(id) != null) {
 				_uddiNaming.unbind(TRANSPORTER_NAME);
 			}
-		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }*/
+		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
 
 	
@@ -159,16 +161,16 @@ public class BrokerIT {
     public void setUp()throws Exception {
 		_broker = new BrokerClient(UDDI_URL, BROKER_NAME).port;
 		_broker.clearTransports();
-		startBroker();
-		startTransporter(1);
-		startTransporter(2);
+// 		startBroker();
+// 		startTransporter(1);
+// 		startTransporter(2);
 	}
 
     @After
     public void tearDown() {
-   		stopBroker();
-		stopTransporter(1);
-		stopTransporter(2);
+//    	stopBroker();
+// 		stopTransporter(1);
+// 		stopTransporter(2);
 	}
 
 
@@ -194,12 +196,17 @@ public class BrokerIT {
 		tvList = _broker.listTransports();
 		assertEquals(tvList.size(), 0);
 		
+		_uddiNaming = new UDDINaming(UDDI_URL);
+		Collection<String> transporters = _uddiNaming.list(TRANSPORTER_NAME_PREFIX + "_");
+		TransporterClient tClient;
 		List<JobView> jobList;
-		
-		for(Map.Entry<Integer, TransporterPort> entry : _transporters.entrySet()) {
-			jobList = entry.getValue().listJobs();
+
+		for (String transporter : transporters) {
+			tClient = new TransporterClient(transporter);
+			jobList = tClient.port.listJobs();
 			assertEquals(jobList.size(), 0);
 		}
+	
     }
     
 
