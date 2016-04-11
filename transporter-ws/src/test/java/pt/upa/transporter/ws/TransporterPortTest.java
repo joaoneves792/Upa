@@ -57,7 +57,7 @@ public class TransporterPortTest {
 
     @After
     public void tearDown() {
-    	_transporter.resetJobTimes();
+		// pass
     }
 
 	/*

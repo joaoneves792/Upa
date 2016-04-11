@@ -36,4 +36,8 @@ public class BrokerClient {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 	}
+	
+	public BrokerPortType getPort(){
+		return port;
+	}
 }

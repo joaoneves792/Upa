@@ -42,7 +42,6 @@ public class TransporterPort implements TransporterPortType {
 		
 		@Override
 		public void run() {
-			System.out.println("UPDATED");
 			_job.setJobState(_state);
 		}
 	}
@@ -57,7 +56,6 @@ public class TransporterPort implements TransporterPortType {
 	// public setters to use for tests involving timers
 	public void setJobMinTime(int time) { _jobMinTime = time; }
 	public void setJobMaxTime(int time) { _jobMaxTime = time; }
-	public void resetJobTimes() { _jobMinTime = MIN_TIME; _jobMaxTime = MAX_TIME; }
 	
 	// auxiliary function to get job with given id
 	private JobView getJob(String id)
