@@ -151,6 +151,18 @@ public class BrokerPort implements BrokerPortType {
 			}
 		}
 
+		//Ditch all the other proposals
+		for(JobView j : availableJobs){
+			if(j.getCompanyName().equals(choosenJob.getCompanyName()) && j.getJobIdentifier().equals(choosenJob.getJobIdentifier()))
+				continue;
+			try {
+				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
+				client.getPort().decideJob(j.getJobIdentifier(), false);
+			}catch (JAXRException | BadJobFault_Exception e){
+				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
+			}
+		}
+
 		if(choosenJob.getJobPrice() > price){
 			UnavailableTransportPriceFault fault = new UnavailableTransportPriceFault();
 			fault.setBestPriceFound(choosenJob.getJobPrice());
