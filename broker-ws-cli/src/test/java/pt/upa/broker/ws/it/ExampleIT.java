@@ -44,7 +44,7 @@ public class ExampleIT {
     // tests
 
     @Test
-    public void test() {
+    public void pingSu() {
 
         // assertEquals(expected, actual);
         // if the assert fails, the test fails

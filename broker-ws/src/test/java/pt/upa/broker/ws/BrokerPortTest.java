@@ -351,7 +351,7 @@ public class BrokerPortTest {
 
             }
         };
-        assertEquals("Booking should have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
+        assertEquals("Booking should not have failed", _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE), BOOKED_JOB);
     }
 
 	/*
