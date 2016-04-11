@@ -43,7 +43,7 @@ public class BrokerIT {
     private final int VALID_PRICE = 100;
     private final int INVALID_PRICE = -1;
     private final int OVERPRICED_PRICE = 101;
-    private final int UNDERPRICED_PRICE = 99;
+    private final int UNDERPRICED_PRICE = 9;
     
 // members //
 	private UDDINaming _uddiNaming;
@@ -128,6 +128,17 @@ public class BrokerIT {
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
+	
+	
+// 	public void dircoverBroker() {
+// 		_uddiNaming = new UDDINaming(UDDI_URL);
+// 		_brokerEndpoint = Endpoint.create(_broker);
+// 		
+// 
+// 	}
+
+	
+	
 
 	
 // one-time initialization and clean-up //
@@ -141,16 +152,17 @@ public class BrokerIT {
 // initialization and clean-up for each test //
     @Before
     public void setUp() {
-		startBroker();
-		startTransporter(1);
-		startTransporter(2);
+		_broker = new BrokerPort(UDDI_URL);
+// 		startBroker();
+// 		startTransporter(1);
+// 		startTransporter(2);
 	}
 
     @After
     public void tearDown() {
-   		stopBroker();
-		stopTransporter(1);
-		stopTransporter(2);
+//    		stopBroker();
+// 		stopTransporter(1);
+// 		stopTransporter(2);
 	}
 
 
@@ -364,14 +376,14 @@ public class BrokerIT {
 	public void viewTransportSucess() throws Exception {
 
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_1");
+		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_0");
 		
         assertEquals(t.getDestination(), VALID_DESTINATION);
         assertEquals(t.getOrigin(), VALID_ORIGIN);
         assertEquals(t.getTransporterCompany(), TRANSPORTER_NAME_PREFIX + "1");
         assertTrue(t.getPrice() <= VALID_PRICE);
         assertEquals(t.getState(), TransportStateView.BOOKED);
-        assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_1");
+        assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_0");
 	}
     
 /*

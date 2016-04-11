@@ -27,7 +27,7 @@ public class TransporterPortTest {
     private final String SOUTH_LOCATION = "Setubal";
 
 	private final int INVALID_PRICE = -1;
-	private final int VALID_PRICE = 50;
+	private final int VALID_PRICE = 100;
     private final int EVEN_PRICE = 50;
     private final int ODD_PRICE = 51;
     private final int OVERPRICED_PRICE = 101;
