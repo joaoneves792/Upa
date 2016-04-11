@@ -364,7 +364,7 @@ public class BrokerPortTest {
 	}
 
     @Test(expected = UnknownTransportFault_Exception.class)
-	public void viewTransportInvalidId() throws Exception {
+	public void viewTransportInvalidBrokerId() throws Exception {
 	    new Expectations() {
             {
                 new UDDINaming((String) any);
@@ -389,6 +389,36 @@ public class BrokerPortTest {
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_broker.viewTransport(INVALID_ID);
 	}
+	
+	@Test(expected = UnknownTransportFault_Exception.class)
+	public void viewTransportInvalidTransporterId() throws Exception {
+	    new Expectations() {
+            {
+                new UDDINaming((String) any);
+                result = (_uddi);
+
+                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
+                result = (_transporterList);
+
+                new TransporterClient((String) any);
+                result = (_client);
+
+                _client.getPort();
+                result = (_tpt);
+
+                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+                result = (_underpricedJob);
+
+                _tpt.decideJob((String) any, true);
+                result = (_acceptedJob);
+                
+                _tpt.jobStatus((String) any);
+                result = null;
+            }
+        };
+        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_broker.viewTransport("0");
+	}
 
 	@Test
 	public void viewTransportSucess() throws Exception {
@@ -411,11 +441,13 @@ public class BrokerPortTest {
 
                 _tpt.decideJob((String) any, true);
                 result = (_acceptedJob);
+                
+                _tpt.jobStatus((String) any);
+                result = (_acceptedJob);
             }
         };
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		TransportView t = _broker.viewTransport("0");
-		assertEquals(t.getClass(), TransportView.class);
         assertEquals(t.getDestination(), VALID_DESTINATION);
         assertEquals(t.getOrigin(), VALID_ORIGIN);
         assertEquals(t.getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");

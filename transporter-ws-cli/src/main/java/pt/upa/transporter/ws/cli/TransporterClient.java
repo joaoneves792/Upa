@@ -15,7 +15,7 @@ import pt.upa.transporter.ws.TransporterService;
 public class TransporterClient {
 	public TransporterPortType port;
 	
-	public TransporterClient(String uddiURL, String name)throws JAXRException {
+	public TransporterClient(String uddiURL, String name) throws JAXRException {
 		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 		
 		System.out.printf("Contacting UDDI at %s%n", uddiURL);
@@ -38,10 +38,10 @@ public class TransporterClient {
 		System.out.println("Setting endpoint address ...");
 		BindingProvider bindingProvider = (BindingProvider) port;
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);	
+		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 	}
 
-	public TransporterClient(String endpointAddress)throws JAXRException {
+	public TransporterClient(String endpointAddress) throws JAXRException {
 		System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 
 		if (endpointAddress == null) {
@@ -88,7 +88,7 @@ public class TransporterClient {
 		return port.jobStatus(id);
 	}
 	
-	public List<JobView> listJobs() {		 
+	public List<JobView> listJobs() {
 		return port.listJobs();
 	}
 	

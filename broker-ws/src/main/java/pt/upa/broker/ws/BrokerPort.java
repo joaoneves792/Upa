@@ -49,6 +49,22 @@ public class BrokerPort implements BrokerPortType {
 		throw new UnknownTransportFault_Exception("Invalid transport id", faultInfo);
 	}
 	
+	private TransportStateView convertState(JobStateView state) {
+		if (state == JobStateView.PROPOSED)
+			return TransportStateView.BUDGETED;
+		if (state == JobStateView.ACCEPTED)
+			return TransportStateView.BOOKED;
+		if (state == JobStateView.REJECTED)
+			return TransportStateView.FAILED;
+		if (state == JobStateView.HEADING)
+			return TransportStateView.HEADING;
+		if (state == JobStateView.ONGOING)
+			return TransportStateView.ONGOING;
+		if (state == JobStateView.COMPLETED)
+			return TransportStateView.COMPLETED;
+		return null;
+	}
+	
 	@Override
     public String ping(String name) {
 		String result = name + " UpaBroker";
@@ -180,11 +196,28 @@ public class BrokerPort implements BrokerPortType {
 		return budgetedTransport;
 	}
 
-	@Override //TODO: Check transport state with the transporter??
+	@Override
     public TransportView viewTransport(String id)
             throws UnknownTransportFault_Exception {
-            	
-    	return getTransport(id);
+        JobView job;
+        TransportView transport = getTransport(id);
+        
+       	try{
+			job = new TransporterClient(_uddiLocation, transport.getTransporterCompany()).getPort().jobStatus(id);
+		}catch (JAXRException e){  //Connection to UDDI failed
+			// if unable to connect to transporter return job as it is
+			return transport;
+		}
+        
+        if (job != null){
+        	transport.setState(convertState(job.getJobState()));
+        } else {
+        	UnknownTransportFault faultInfo = new UnknownTransportFault();
+			faultInfo.setId(id);
+			throw new UnknownTransportFault_Exception("Transporter has no record of any job with given id.", faultInfo);
+        }
+        
+    	return transport;
     }
     
 	@Override
@@ -193,8 +226,9 @@ public class BrokerPort implements BrokerPortType {
     }
 
 	@Override
-    public void clearTransports() { //Should we reset the id counter?
+    public void clearTransports() {
     	_transportList.clear();
+    	_idCounter = 0;
 		try{
 			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX);
 
