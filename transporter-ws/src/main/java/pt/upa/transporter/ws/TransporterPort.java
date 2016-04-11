@@ -21,6 +21,8 @@ import java.util.TimerTask;
 )
 public class TransporterPort implements TransporterPortType {
 	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
+	private final int MIN_TIME = 1000;
+	private final int MAX_TIME = 5000;
 	
 	private int _id;
 	private int _jobCounter;
@@ -40,6 +42,7 @@ public class TransporterPort implements TransporterPortType {
 		
 		@Override
 		public void run() {
+			System.out.println("UPDATED");
 			_job.setJobState(_state);
 		}
 	}
@@ -47,13 +50,14 @@ public class TransporterPort implements TransporterPortType {
 	public TransporterPort(int n) {
 		_id = n;
 		_jobCounter = 0;
-		_jobMinTime = 1000;
-		_jobMaxTime = 5000;
+		_jobMinTime = MIN_TIME;
+		_jobMaxTime = MAX_TIME;
 	}
 	
 	// public setters to use for tests involving timers
-	public void setJobMaxTime(int time) { _jobMaxTime = time; }
 	public void setJobMinTime(int time) { _jobMinTime = time; }
+	public void setJobMaxTime(int time) { _jobMaxTime = time; }
+	public void resetJobTimes() { _jobMinTime = MIN_TIME; _jobMaxTime = MAX_TIME; }
 	
 	// auxiliary function to get job with given id
 	private JobView getJob(String id)

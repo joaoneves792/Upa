@@ -5,12 +5,7 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import javax.xml.registry.JAXRException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.TimerTask;
 import java.util.Timer;
@@ -62,7 +57,7 @@ public class TransporterPortTest {
 
     @After
     public void tearDown() {
-    	// empty for now
+    	_transporter.resetJobTimes();
     }
 
 	/*

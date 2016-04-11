@@ -4,21 +4,18 @@ import org.junit.*;
 import javax.xml.ws.Endpoint;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
-import pt.upa.broker.ws.cli.BrokerClient;
-import pt.upa.transporter.ws.cli.TransporterClient;
-
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.TransporterPort;
+import pt.upa.transporter.ws.cli.TransporterClient;
 
 import pt.upa.broker.ws.*;
 import pt.upa.broker.ws.BrokerPort;
+import pt.upa.broker.ws.cli.BrokerClient;
 
 import java.util.List;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static org.junit.Assert.*;
 
@@ -60,7 +57,7 @@ public class BrokerIT {
 
 	private final String PING_MESSAGE = "Found:";
 	private final String PING_RESPONSE = PING_MESSAGE + " "  + BROKER_NAME + " ";
-	
+
 // members //
 	private UDDINaming _uddiNaming;
 	
@@ -69,7 +66,6 @@ public class BrokerIT {
 	
 	private Map<Integer, Endpoint> _transporterEndpoints = new TreeMap<Integer, Endpoint>();
 	private Map<Integer, TransporterPort> _transporters = new TreeMap<Integer, TransporterPort>();
-	
 	
 // functions //
 
@@ -146,10 +142,6 @@ public class BrokerIT {
 			}
 		} catch (Exception e) { System.out.printf("Caught exception when deleting: %s%n", e); }
 	}
-
-	
-	
-
 	
 // one-time initialization and clean-up //
     @BeforeClass
@@ -210,7 +202,7 @@ public class BrokerIT {
 		}
     }
     
-
+/*
     @Test(expected = UnavailableTransportFault_Exception.class)
     public void requestTransportNoneAvailableBadLocation() throws Exception {
         _broker.requestTransport(NORTH_LOCATION, SOUTH_LOCATION, VALID_PRICE);
@@ -242,53 +234,6 @@ public class BrokerIT {
 		TransportView tv = _broker.viewTransport(id);
 		assertEquals(TransportStateView.BOOKED, tv.getState());
     }
-    
-    
-/*    @Test(expected = UnknownTransportFault_Exception.class)
-	public void viewTransportInvalidTransporterId() throws Exception {
-	    new Expectations() {
-            {
-                new UDDINaming((String) any);
-                result = (_uddi);
-
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
-                result = (_transporterList);
-
-                new TransporterClient((String) any);
-                result = (_client);
-
-                _client.getPort();
-                result = (_tpt);
-
-                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result = (_underpricedJob);
-
-                _tpt.decideJob((String) any, true);
-                result = (_acceptedJob);
-                
-                _tpt.jobStatus((String) any);
-                result = null;
-            }
-        };
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		_broker.viewTransport("0");
-	}
-
-    
-    @Test
-	public void viewTransportSucess() throws Exception {
-
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_0");
-		
-        assertEquals(t.getDestination(), VALID_DESTINATION);
-        assertEquals(t.getOrigin(), VALID_ORIGIN);
-        assertEquals(t.getTransporterCompany(), TRANSPORTER_NAME_PREFIX + "1");
-        assertTrue(t.getPrice() <= VALID_PRICE);
-        assertEquals(t.getState(), TransportStateView.BOOKED);
-        assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_0");
-	}
-*/    
 
 	@Test
     public void listTransportsSuccess() throws Exception {
@@ -313,12 +258,12 @@ public class BrokerIT {
 // 		tClient = new TransporterClient(_uddiNaming.lookup(TRANSPORTER_NAME_PREFIX + "2"));
 // 		jobList = tClient.port.listJobs();
 // 		assertEquals(jobList.size(), 1);
-// 		
+//
 // 		jv = jvList.get(0);
 // 		assertEquals(VALID_DESTINATION, jv.getDestination());
 // 		assertEquals(VALID_ORIGIN, jv.getOrigin());
 // 		assertTrue(jv.getPrice() <= VALID_PRICE_ODD);
-// 		assertEquals(JobStateView.REJECTED, jv.getState());		
+// 		assertEquals(JobStateView.REJECTED, jv.getState());
 		
 		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_EVEN);
 		tvList = _broker.listTransports();
@@ -332,42 +277,36 @@ public class BrokerIT {
 		assertEquals(TransportStateView.BOOKED, tv.getState());
     }
 
-/*
-    // othername
 	@Test
-    public void decideJobRejectSuccess() throws Exception {
-    	_transporter.setJobMinTime(100);
-        _transporter.setJobMaxTime(101);
-
-        _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-        JobView job = _transporter.decideJob("0", false);
-		assertEquals("Returned job state is not REJECTED.", JobStateView.REJECTED, job.getJobState());
-		
-		Thread.sleep(400);
-		
-		assertEquals("Timers shouldn't change a rejected job state", JobStateView.REJECTED, job.getJobState());
+	public void viewTransportSucess() throws Exception {
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView t = _broker.viewTransport(id);
+        assertEquals(VALID_DESTINATION, t.getDestination());
+        assertEquals(VALID_ORIGIN, t.getOrigin());
+        assertEquals(id.split("_")[0], t.getTransporterCompany());
+        assertTrue(t.getPrice() <= VALID_PRICE);
+        assertEquals(TransportStateView.BOOKED, t.getState() );
+        assertEquals(id, t.getId());
 	}
-	
-	
-	// othername
+    
 	@Test
-    public void decideJobAcceptSuccess() throws Exception {
-    	_transporter.setJobMinTime(100);
-        _transporter.setJobMaxTime(101);
-        
-        _transporter.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-        JobView job = _transporter.decideJob("0", true);
-		assertEquals("Returned job state is not ACCEPTED", JobStateView.ACCEPTED, job.getJobState());
+    public void viewTransportSuccessWithTimers() throws Exception {
+    	//_transporters.get(1).setJobMinTime(100);
+        //_transporters.get(1).setJobMaxTime(101);
+        //_transporters.get(2).setJobMinTime(100);
+        //_transporters.get(2).setJobMaxTime(101);
+
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+        TransportView t = _broker.viewTransport(id);
+		
+		assertEquals("Returned transport state is not BOOKED", TransportStateView.BOOKED, t.getState());
 				
     	Timer timer = new Timer();
-		timer.schedule(new CheckStateTask(job, JobStateView.HEADING, this), 150);
-		timer.schedule(new CheckStateTask(job, JobStateView.ONGOING, this), 250);
-		timer.schedule(new CheckStateTask(job, JobStateView.COMPLETED, this), 350);
+		timer.schedule(new CheckStateTask(t, TransportStateView.HEADING, this), 150);
+		timer.schedule(new CheckStateTask(t, TransportStateView.ONGOING, this), 250);
+		timer.schedule(new CheckStateTask(t, TransportStateView.COMPLETED, this), 350);
 		Thread.sleep(400);
-
+		
 		assertFalse("Timer based change of states ain't working correctly.", _error);
 	}
-
-*/
-
 }
