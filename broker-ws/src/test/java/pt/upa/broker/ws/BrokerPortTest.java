@@ -432,8 +432,8 @@ public class BrokerPortTest {
                 result = null;
             }
         };
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		_broker.viewTransport(TRANSPORTER_COMPANY_PREFIX + "1_1");
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_broker.viewTransport(id);
 	}
 
 	@Test
@@ -462,14 +462,14 @@ public class BrokerPortTest {
                 result = (_acceptedJob);
             }
         };
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport(TRANSPORTER_COMPANY_PREFIX + "1_1");
+        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView t = _broker.viewTransport(id);
         assertEquals(VALID_DESTINATION, t.getDestination());
         assertEquals(VALID_ORIGIN, t.getOrigin());
         assertEquals(TRANSPORTER_COMPANY_PREFIX + "1", t.getTransporterCompany());
         assertTrue(t.getPrice() <= VALID_PRICE);
         assertEquals(TransportStateView.BOOKED, t.getState() );
-        assertEquals(TRANSPORTER_COMPANY_PREFIX + "1_1", t.getId());
+        assertEquals(id, t.getId());
 	}
 	
     /*
