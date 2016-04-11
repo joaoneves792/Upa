@@ -41,23 +41,26 @@ public class BrokerIT {
 	private final String TRANSPORTER_URL_SUFIX = "/transporter-ws/endpoint";
 
 	private final String VALID_ORIGIN = "Lisboa";
-    private final String VALID_DESTINATION = "Leiria";
+	private final String VALID_DESTINATION = "Leiria";
 	private final String NORTH_LOCATION = "Porto";
 	private final String SOUTH_LOCATION = "Setubal";
-    private final String INVALID_ORIGIN = "Alameda";
-    private final String INVALID_DESTINATION = "Porto Salvo";
+	private final String INVALID_ORIGIN = "Alameda";
+	private final String INVALID_DESTINATION = "Porto Salvo";
 
-    private final int VALID_PRICE = 100;
-    private final int INVALID_PRICE = -1;
-    private final int OVERPRICED_PRICE = 101;
-    private final int UNDERPRICED_PRICE = 9;
+	private final int VALID_PRICE = 100;
+	private final int VALID_PRICE_ODD = 99;
+	private final int VALID_PRICE_EVEN = 100;
+
+	private final int INVALID_PRICE = -1;
+	private final int OVERPRICED_PRICE = 101;
+	private final int UNDERPRICED_PRICE = 9;
 
 	private final String TRANSPORTER_ONE_NAME = "UpaTransporter1";
 	private final String TRANSPORTER_TWO_NAME = "UpaTransporter2";
 
 	private final String PING_MESSAGE = "Found:";
 	private final String PING_RESPONSE = PING_MESSAGE + " "  + BROKER_NAME + " ";
-    
+	
 // members //
 	private UDDINaming _uddiNaming;
 	
@@ -176,7 +179,6 @@ public class BrokerIT {
 
 // tests //
 
-
     @Test
     public void pingSuccess() {
 		String result = _broker.ping(PING_MESSAGE);
@@ -206,7 +208,6 @@ public class BrokerIT {
 			jobList = tClient.port.listJobs();
 			assertEquals(jobList.size(), 0);
 		}
-	
     }
     
 
@@ -272,67 +273,66 @@ public class BrokerIT {
         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		_broker.viewTransport("0");
 	}
-*/
+
     
-//     @Test
-// 	public void viewTransportSucess() throws Exception {
-// 
-//         _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-// 		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_0");
-// 		
-//         assertEquals(t.getDestination(), VALID_DESTINATION);
-//         assertEquals(t.getOrigin(), VALID_ORIGIN);
-//         assertEquals(t.getTransporterCompany(), TRANSPORTER_NAME_PREFIX + "1");
-//         assertTrue(t.getPrice() <= VALID_PRICE);
-//         assertEquals(t.getState(), TransportStateView.BOOKED);
-//         assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_0");
-// 	}
-    
-/*
+    @Test
+	public void viewTransportSucess() throws Exception {
+
+        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView t = _broker.viewTransport(TRANSPORTER_NAME_PREFIX + "1_0");
+		
+        assertEquals(t.getDestination(), VALID_DESTINATION);
+        assertEquals(t.getOrigin(), VALID_ORIGIN);
+        assertEquals(t.getTransporterCompany(), TRANSPORTER_NAME_PREFIX + "1");
+        assertTrue(t.getPrice() <= VALID_PRICE);
+        assertEquals(t.getState(), TransportStateView.BOOKED);
+        assertEquals(t.getId(), TRANSPORTER_NAME_PREFIX + "1_0");
+	}
+*/    
+
 	@Test
     public void listTransportsSuccess() throws Exception {
-        new Expectations() {
-            {
-                new UDDINaming((String) any);
-                result = (_uddi);
+		_uddiNaming = new UDDINaming(UDDI_URL);
+		List<TransportView> tvList;
+		TransportView tv;
+// 		TransporterClient tClient;
+// 		List<JobView> jobList;
+// 		JobView jv;
 
-                _uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
-                result = (_transporterList);
-
-                new TransporterClient((String) any);
-                result = (_client);
-
-                _client.getPort();
-                result = (_tpt);
-
-                _tpt.requestJob(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-                result = (_underpricedJob);
-
-                _tpt.decideJob((String) any, true);
-                result = (_acceptedJob);
-
-            }
-        };
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-        List<TransportView> tl = _broker.listTransports();
-        assertEquals("Should only have one job", tl.size(), 1);
-        assertEquals(tl.get(0).getDestination(), VALID_DESTINATION);
-        assertEquals(tl.get(0).getOrigin(), VALID_ORIGIN);
-        assertEquals(tl.get(0).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
-        assertTrue(tl.get(0).getPrice() <= VALID_PRICE);
-        assertEquals(tl.get(0).getState(), TransportStateView.BOOKED);
-
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-        tl = _broker.listTransports();
-        assertEquals("Should have two jobs", tl.size(), 2);
-        assertEquals(tl.get(1).getDestination(), VALID_DESTINATION);
-        assertEquals(tl.get(1).getOrigin(), VALID_ORIGIN);
-        assertEquals(tl.get(1).getTransporterCompany(), TRANSPORTER_COMPANY_PREFIX + "1");
-        assertTrue(tl.get(1).getPrice() <= VALID_PRICE);
-        assertEquals(tl.get(1).getState(), TransportStateView.BOOKED);
+		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_ODD);
+		tvList = _broker.listTransports();
+		assertEquals("Should only have one job", 1, tvList.size());
+		
+		tv = tvList.get(0);
+		assertEquals(VALID_DESTINATION, tv.getDestination());
+		assertEquals(VALID_ORIGIN, tv.getOrigin());
+		assertEquals(TRANSPORTER_NAME_PREFIX + "1", tv.getTransporterCompany());
+		assertTrue(tv.getPrice() <= VALID_PRICE_ODD);
+		assertEquals(TransportStateView.BOOKED, tv.getState());
+		
+// 		tClient = new TransporterClient(_uddiNaming.lookup(TRANSPORTER_NAME_PREFIX + "2"));
+// 		jobList = tClient.port.listJobs();
+// 		assertEquals(jobList.size(), 1);
+// 		
+// 		jv = jvList.get(0);
+// 		assertEquals(VALID_DESTINATION, jv.getDestination());
+// 		assertEquals(VALID_ORIGIN, jv.getOrigin());
+// 		assertTrue(jv.getPrice() <= VALID_PRICE_ODD);
+// 		assertEquals(JobStateView.REJECTED, jv.getState());		
+		
+		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_EVEN);
+		tvList = _broker.listTransports();
+		assertEquals("Should have two jobs", 2, tvList.size());
+		
+		tv = tvList.get(1);
+		assertEquals(VALID_DESTINATION, tv.getDestination());
+		assertEquals(VALID_ORIGIN, tv.getOrigin());
+		assertEquals(TRANSPORTER_NAME_PREFIX + "2", tv.getTransporterCompany());
+		assertTrue(tv.getPrice() <= VALID_PRICE_EVEN);
+		assertEquals(TransportStateView.BOOKED, tv.getState());
     }
-    
-    
+
+/*
     // othername
 	@Test
     public void decideJobRejectSuccess() throws Exception {
