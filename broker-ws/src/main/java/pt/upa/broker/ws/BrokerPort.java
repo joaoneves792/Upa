@@ -25,7 +25,7 @@ import pt.upa.transporter.ws.cli.TransporterClient;
     serviceName="BrokerService"
 )
 public class BrokerPort implements BrokerPortType {
-
+	
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
 	private int _idCounter;
@@ -37,6 +37,7 @@ public class BrokerPort implements BrokerPortType {
 		_idCounter = 0;
 	}
 	
+	// auxiliary function to get transport with given id
 	private TransportView getTransport(String id)
 			throws UnknownTransportFault_Exception {
 				
@@ -49,6 +50,7 @@ public class BrokerPort implements BrokerPortType {
 		throw new UnknownTransportFault_Exception("Invalid transport id", faultInfo);
 	}
 	
+	// auxiliary function to convert job states to transport states
 	private TransportStateView convertState(JobStateView state) {
 		if (state == JobStateView.PROPOSED)
 			return TransportStateView.BUDGETED;
@@ -65,6 +67,28 @@ public class BrokerPort implements BrokerPortType {
 		return null;
 	}
 	
+	// auxiliary function to check if a location is valid
+	private void verifyLocation(String location) throws UnknownLocationFault_Exception {
+		if(Locations.north.contains(location) || Locations.center.contains(location) || Locations.south.contains(location))
+			return;
+		UnknownLocationFault locationFault = new UnknownLocationFault();
+		locationFault.setLocation(location);
+		throw new UnknownLocationFault_Exception("Unrecognised location: "+ location, locationFault);
+	}
+
+	// auxiliary function to create a transport from a job
+	private TransportView createBudgetedTransport(JobView chosenJob) {
+		TransportView budgetedTransport = new TransportView();
+		budgetedTransport.setOrigin(chosenJob.getJobOrigin());
+		budgetedTransport.setDestination(chosenJob.getJobDestination());
+		budgetedTransport.setPrice(chosenJob.getJobPrice());
+		budgetedTransport.setTransporterCompany(chosenJob.getCompanyName());
+		budgetedTransport.setState(TransportStateView.BUDGETED);
+		budgetedTransport.setId(Integer.toString(_idCounter++));
+		return budgetedTransport;
+	}
+	
+	// ping transporters
 	@Override
     public String ping(String name) {
 		String result = name + " UpaBroker";
@@ -86,6 +110,7 @@ public class BrokerPort implements BrokerPortType {
 		return result;
     }
 	
+	// tries to schedule transport from given origin to given destination
 	@Override
     public String requestTransport(String origin, String destination, int price)
             throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
@@ -98,9 +123,7 @@ public class BrokerPort implements BrokerPortType {
 		verifyLocation(origin);
 		verifyLocation(destination);
 
-
-
-		//Contact all transporter companies and get their proposals
+		// contact all transporter companies and get their proposals
 		List<JobView> availableJobs;
 		availableJobs = getJobProposals(origin, destination, price);
 
@@ -111,7 +134,7 @@ public class BrokerPort implements BrokerPortType {
 			throw new UnavailableTransportFault_Exception("No transports available between" + origin + "and" + destination, fault);
 		}
 
-		//Pick the lowest priced job
+		// pick the lowest priced job
 		int lowestPrice = Integer.MAX_VALUE;
 		JobView choosenJob = null;
 		for (JobView job: availableJobs) {
@@ -135,6 +158,7 @@ public class BrokerPort implements BrokerPortType {
 		return (transport.getState() == TransportStateView.BOOKED)? "BOOKED": "FAILED";
     }
 
+	// returns a list of the jobs proposed by the transporters
 	private List<JobView> getJobProposals(String origin, String destination, int price) throws UnavailableTransportFault_Exception {
 		List<JobView> availableJobs = new ArrayList<>();
 		try{
@@ -149,13 +173,13 @@ public class BrokerPort implements BrokerPortType {
 					if (null != job)
 						availableJobs.add(job);
 				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
-					//We already checked for these issues, so if the transporter server
-					//doesn't like them just ignore that transporter, its their bug!
+					// we already checked for these issues, so if the transporter server
+					// doesn't like them just ignore that transporter, its their bug!
 				}catch (JAXRException e){
-					//Nothing we can do here, just move on to the next transporter...
+					// nothing we can do here, just move on to the next transporter...
 				}
 			}
-		}catch (JAXRException e){  //Connection to UDDI failed
+		}catch (JAXRException e){  // connection to UDDI failed
 			UnavailableTransportFault fault = new UnavailableTransportFault();
 			fault.setOrigin(origin);
 			fault.setDestination(destination);
@@ -164,6 +188,7 @@ public class BrokerPort implements BrokerPortType {
 		return availableJobs;
 	}
 
+	// confirm transport
 	private void bookJob(TransportView transport) {
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
@@ -177,25 +202,7 @@ public class BrokerPort implements BrokerPortType {
 		}
 	}
 
-	private void verifyLocation(String location) throws UnknownLocationFault_Exception {
-		if(Locations.north.contains(location) || Locations.center.contains(location) || Locations.south.contains(location))
-			return;
-		UnknownLocationFault locationFault = new UnknownLocationFault();
-		locationFault.setLocation(location);
-		throw new UnknownLocationFault_Exception("Unrecognised location: "+ location, locationFault);
-	}
-
-	private TransportView createBudgetedTransport(JobView chosenJob) {
-		TransportView budgetedTransport = new TransportView();
-		budgetedTransport.setOrigin(chosenJob.getJobOrigin());
-		budgetedTransport.setDestination(chosenJob.getJobDestination());
-		budgetedTransport.setPrice(chosenJob.getJobPrice());
-		budgetedTransport.setTransporterCompany(chosenJob.getCompanyName());
-		budgetedTransport.setState(TransportStateView.BUDGETED);
-		budgetedTransport.setId(Integer.toString(_idCounter++));
-		return budgetedTransport;
-	}
-
+	// returns transport current state (updated)
 	@Override
     public TransportView viewTransport(String id)
             throws UnknownTransportFault_Exception {
@@ -204,7 +211,7 @@ public class BrokerPort implements BrokerPortType {
         
        	try{
 			job = new TransporterClient(_uddiLocation, transport.getTransporterCompany()).getPort().jobStatus(id);
-		}catch (JAXRException e){  //Connection to UDDI failed
+		}catch (JAXRException e){
 			// if unable to connect to transporter return job as it is
 			return transport;
 		}
@@ -220,11 +227,13 @@ public class BrokerPort implements BrokerPortType {
     	return transport;
     }
     
+    // returns the list of the current transports
 	@Override
     public List<TransportView> listTransports() {
     	return _transportList;
     }
 
+	// clears the list of current transports
 	@Override
     public void clearTransports() {
     	_transportList.clear();
@@ -236,11 +245,11 @@ public class BrokerPort implements BrokerPortType {
 				try{
 					(new TransporterClient(transporter)).getPort().clearJobs();
 				}catch (JAXRException e){
-					//Nothing we can do here, just move on to the next transporter...
+					// nothing we can do here, just move on to the next transporter...
 				}
 			}
 		}catch (JAXRException e){
-			/*Connection to UDDI failed nothing we can do about the transporters jobs...*/
+			// connection to UDDI failed nothing we can do about the transporters jobs...
 		}
     }
     

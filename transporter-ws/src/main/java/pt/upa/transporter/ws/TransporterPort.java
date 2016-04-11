@@ -43,7 +43,6 @@ public class TransporterPort implements TransporterPortType {
 		}
 	}
 	
-	// so that the tranporter knows whether it is even or odd.
 	public TransporterPort(int n) {
 		_id = n;
 		_jobCounter = 0;
@@ -51,12 +50,11 @@ public class TransporterPort implements TransporterPortType {
 		_jobMaxTime = 5000;
 	}
 	
-	// getters
-	public int getId() { return _id; }
-	public int getJobCounter() { return _jobCounter; }
-	public int getJobMinTime() { return _jobMinTime; }
-	public int getJobMaxTime() { return _jobMaxTime; }
-
+	// public setters to use for tests involving timers
+	public void setJobMaxTime(int time) { _jobMaxTime = time; }
+	public void setJobMinTime(int time) { _jobMinTime = time; }
+	
+	// auxiliary function to get job with given id
 	private JobView getJob(String id)
 			throws BadJobFault_Exception {
 		
@@ -68,10 +66,6 @@ public class TransporterPort implements TransporterPortType {
 		faultInfo.setId(id);
 		throw new BadJobFault_Exception("Invalid job identifier ", faultInfo);
 	}
-	
-	// setters
-	public void setJobMaxTime(int time) { _jobMaxTime = time; } //hack for the tests involving timers
-	public void setJobMinTime(int time) { _jobMinTime = time; } //hack for the tests involving timers
 	
 	// auxiliary function to check the tranporter's possible working locations
 	private boolean verifyLocation(String location) throws BadLocationFault_Exception {
@@ -117,13 +111,14 @@ public class TransporterPort implements TransporterPortType {
 		return _jobMinTime + (new Random().nextInt(_jobMaxTime - _jobMinTime));
 	}
 	
+	// returns answer to ping request
 	@Override
 	public String ping(String name) {
 		return name + " UpaTransporter" + _id;
 	}
 	
 	
-	// section 5.1. requirements in comments
+	// returns an offer for the given job
 	@Override
     public JobView requestJob(String origin, String destination, int price)
  			throws BadLocationFault_Exception, BadPriceFault_Exception {
@@ -170,6 +165,7 @@ public class TransporterPort implements TransporterPortType {
 		return job;
 	}
 	
+	// accepts or rejects job with given id
 	@Override
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
@@ -179,6 +175,7 @@ public class TransporterPort implements TransporterPortType {
 		
 		// verify if job state is correct (throws exception if wrong)
 		verifyJobState(job, JobStateView.PROPOSED);
+		
 		// change job state to accepted or rejected
 		if (accept) {
 			job.setJobState(JobStateView.ACCEPTED);
@@ -196,22 +193,23 @@ public class TransporterPort implements TransporterPortType {
 		return job;
     }
 	
+	// returns job current state
 	@Override
 	public JobView jobStatus(String id) {
 		try {
-			//return job with given id
 			return getJob(id);
 		} catch (BadJobFault_Exception e) {
-			// if no job is found return null
-			return null;
+			return null; // if no job is found
 		}
 	}
 	
+	// returns the list of current jobs
 	@Override
 	public List<JobView> listJobs() {
 		return _jobs;
 	}
 	
+	// clears the list of current jobs
 	@Override
 	public void clearJobs() {
 		_jobs.clear();
