@@ -28,7 +28,6 @@ Linux
 JUDDI:
 ```
 juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
-...
 ```
 
 
