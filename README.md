@@ -26,8 +26,8 @@ Linux
 [1] Iniciar servidores de apoio
 
 JUDDI:
-juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
 ```
+juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
 ...
 ```
 
@@ -37,7 +37,6 @@ juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
 ```
 git clone -b SD_R1 https://github.com/tecnico-distsys/A_45-project/
 ```
-*(colocar aqui comandos git para obter a versão entregue a partir da tag e depois apagar esta linha)*
 
 
 [4] Instalar módulos de bibliotecas auxiliares
