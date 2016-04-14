@@ -35,7 +35,7 @@ juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
 [3] Obter código fonte do projeto (versão entregue)
 
 ```
-git clone ... 
+git clone -b SD_R1 https://github.com/tecnico-distsys/A_45-project/
 ```
 *(colocar aqui comandos git para obter a versão entregue a partir da tag e depois apagar esta linha)*
 
