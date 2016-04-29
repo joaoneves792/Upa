@@ -40,17 +40,24 @@ function importCertToCAKeystore {
 	keytool -import -keystore ../CA.jks -file $cert -alias $alias -storepass $PASSWORD
 }
 
+function createEntity {
+	entity=$1
+	mkdir $entity
+	cd $entity
+	createCSR $entity
+	signCSR $entity
+	importCAcert
+	importCertToCAKeystore $entity.cer $entity
+	rm $entity.cer $entity.csr
+	cd ..
+}
+
 mkdir $ROOTDIR
 cd $ROOTDIR
 setupCA
 
-mkdir $BROKER
-cd $BROKER
-createCSR $BROKER
-signCSR $BROKER
-importCAcert
-importCertToCAKeystore $BROKER.cer $BROKER
-rm $BROKER.cer $BROKER.csr
-cd ..
+createEntity "$BROKER"
+createEntity "$TRANSPORTER"1
+createEntity "$TRANSPORTER"2
 
 rm cacert.pem key.pem
