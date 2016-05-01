@@ -19,10 +19,11 @@ function setupCA {
 
 function createCSR {
 	name=$1
+	keystore="$1".jks
 	#Create the keystore and generate the keys
-	keytool -genkeypair -alias mykey -dname "cn=$name, ou=SD, o=IST, c=PT" -keyalg RSA -keysize 2048 -validity 365 -keystore keystore.jks -keypass $PASSWORD -storepass $PASSWORD
+	keytool -genkeypair -alias mykey -dname "cn=$name, ou=SD, o=IST, c=PT" -keyalg RSA -keysize 2048 -validity 365 -keystore $keystore -keypass $PASSWORD -storepass $PASSWORD
 	#Create a csr
-	keytool -certreq -alias mykey -keypass $PASSWORD -keystore keystore.jks -storepass $PASSWORD -file $name.csr
+	keytool -certreq -alias mykey -keypass $PASSWORD -keystore $keystore -storepass $PASSWORD -file $name.csr
 }
 
 function signCSR {
@@ -31,7 +32,8 @@ function signCSR {
 }
 
 function importCAcert {
-	keytool -import -keystore keystore.jks -file ../cacert.pem -alias cacert -storepass $PASSWORD -noprompt
+	keystore="$1".jks
+	keytool -import -keystore $keystore -file ../cacert.pem -alias cacert -storepass $PASSWORD -noprompt
 }
 
 function importCertToCAKeystore {
@@ -46,7 +48,7 @@ function createEntity {
 	cd $entity
 	createCSR $entity
 	signCSR $entity
-	importCAcert
+	importCAcert $entity
 	importCertToCAKeystore $entity.cer $entity
 	rm $entity.cer $entity.csr
 	cd ..
