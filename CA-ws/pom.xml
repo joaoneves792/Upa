@@ -18,7 +18,11 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <mainclass>pt.upa.a45.CA.KeyGenerator</mainclass>
+        <mainclass>pt.upa.a45.CA.UpaCA</mainclass>
+        <uddi.url>http://localhost:9090</uddi.url>
+        <ws.name>CA-ws</ws.name>
+        <ws.url>http://localhost:8080/CA-ws/endpoint</ws.url>
+
     </properties>
     <dependencies>
         <dependency>
@@ -27,6 +31,18 @@
             <version>1.0</version>
             <scope>system</scope>
             <systemPath>${java.home}/lib/rt.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sdis</groupId>
+            <artifactId>uddi-naming</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -61,7 +77,9 @@
                     <killAfter>-1</killAfter>
                     <mainClass>${mainclass}</mainClass>
                     <arguments>
-                        <argument>Transporter1</argument>
+                        <argument>${uddi.url}</argument>
+                        <argument>${ws.name}</argument>
+                        <argument>${ws.url}</argument>
                     </arguments>
                 </configuration>
             </plugin>
