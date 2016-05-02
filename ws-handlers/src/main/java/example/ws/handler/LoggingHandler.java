@@ -42,9 +42,9 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         if (outbound) {
-            System.out.println("Outbound SOAP message:");
+            System.out.println("\nOutbound SOAP message:");
         } else {
-            System.out.println("Inbound SOAP message:");
+            System.out.println("\nInbound SOAP message:");
         }
 
         SOAPMessage message = smc.getMessage();
@@ -52,7 +52,7 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
             message.writeTo(System.out);
             System.out.println(); // just to add a newline to output
         } catch (Exception e) {
-            System.out.printf("Exception in handler: %s%n", e);
+            System.out.printf("\nException in handler: %s%n", e);
         }
     }
 

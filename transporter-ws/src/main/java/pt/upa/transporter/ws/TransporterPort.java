@@ -3,11 +3,18 @@ package pt.upa.transporter.ws;
 import javax.jws.WebService;
 import javax.jws.HandlerChain;
 
+import javax.annotation.Resource;
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
+
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import example.ws.handler.RelayHandler;
 
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
@@ -31,6 +38,20 @@ public class TransporterPort implements TransporterPortType {
 	private int _jobMinTime;
 	private int _jobMaxTime;
 	private List<JobView> _jobs = new ArrayList<JobView>();
+	
+	
+	@Resource
+	private WebServiceContext webServiceContext;
+	
+	public void setUpHandler() {
+		MessageContext messageContext = webServiceContext.getMessageContext();
+		String propertyValue = (String) messageContext.get(RelayHandler.REQUEST_PROPERTY);
+		System.out.printf("%s got token '%s' from response context%n",
+												RelayHandler.class.getSimpleName(), propertyValue);
+		
+		messageContext.put(RelayHandler.RESPONSE_PROPERTY, _id);
+	}
+
 	
 	// private timer task definition
 	private class ChangeStateTask extends TimerTask {
@@ -220,4 +241,7 @@ public class TransporterPort implements TransporterPortType {
 		_jobs.clear();
 		_jobCounter = 0;
 	}
+	
+	
 }
+
