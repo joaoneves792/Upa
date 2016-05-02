@@ -152,12 +152,12 @@ public class TransporterPort implements TransporterPortType {
 		
 		// has to return a better deal for prices lower or equal than 10
 		if(price <= 10) {
-			job.setJobPrice((new Random()).nextInt(price));
+			job.setJobPrice(1+(new Random()).nextInt(price-1));
 		}
 		
-		// if price and id are both even or both odd return a better price
+		// if price and id are both even or both odd return a lower price
 		else if((_id + price)%2 == 0) {
-			job.setJobPrice((new Random()).nextInt(price-1));
+			job.setJobPrice(1+(new Random()).nextInt(price-2));
 		
 		// if not, return an higher price
 		} else {
