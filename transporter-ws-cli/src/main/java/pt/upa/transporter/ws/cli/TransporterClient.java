@@ -15,33 +15,39 @@ import pt.upa.transporter.ws.TransporterService;
 public class TransporterClient {
 	public TransporterPortType port;
 	
-	public TransporterClient(String uddiURL, String name) throws JAXRException {
+	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
 		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 		
 		//System.out.printf("Contacting UDDI at %s%n", uddiURL);
-		UDDINaming uddiNaming = new UDDINaming(uddiURL);
+		try {
+			UDDINaming uddiNaming = new UDDINaming(uddiURL);
 
-		//System.out.printf("Looking for '%s'%n", name);
-		String endpointAddress = uddiNaming.lookup(name);
+			//System.out.printf("Looking for '%s'%n", name);
+			String endpointAddress = uddiNaming.lookup(name);
 
-		if (endpointAddress == null) {
-			System.out.println(name + " not found!");
-			return;
-		} else {
-			//System.out.printf("Found %s%n", endpointAddress);
+			if (endpointAddress == null) {
+				System.out.println(name + " not found!");
+				throw new TransporterClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
+			} else {
+				//System.out.printf("Found %s%n", endpointAddress);
+			}
+
+			//System.out.println("Creating stub ...");
+			TransporterService service = new TransporterService();
+			this.port = service.getTransporterPort();
+
+			//System.out.println("Setting endpoint address ...");
+			BindingProvider bindingProvider = (BindingProvider) port;
+			Map<String, Object> requestContext = bindingProvider.getRequestContext();
+			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+		}catch (JAXRException e){
+			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
+			ex.initCause(e);
+			throw ex;
 		}
-
-		//System.out.println("Creating stub ...");
-		TransporterService service = new TransporterService();
-		this.port = service.getTransporterPort();
-
-		//System.out.println("Setting endpoint address ...");
-		BindingProvider bindingProvider = (BindingProvider) port;
-		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 	}
 
-	public TransporterClient(String endpointAddress) throws JAXRException {
+	public TransporterClient(String endpointAddress) throws TransporterClientException {
 		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 
 		if (endpointAddress == null) {
