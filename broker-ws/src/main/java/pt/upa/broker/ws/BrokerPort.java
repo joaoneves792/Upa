@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
+import pt.upa.transporter.ws.cli.TransporterClientException;
 
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
@@ -107,11 +108,12 @@ public class BrokerPort implements BrokerPortType {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
 					result = client.port.ping(result);
-				}catch (JAXRException e){
+// 				}catch (JAXRException e){
+				} catch (TransporterClientException e) {
 					result += " " + transporter + " failed! ";
 				}
 			}
-		}catch(JAXRException e){
+		} catch(JAXRException e){
 			result += " UDDI Failed ";
 		}
 		return result;
@@ -158,7 +160,8 @@ public class BrokerPort implements BrokerPortType {
 			try {
 				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
 				client.getPort().decideJob(j.getJobIdentifier(), false);
-			}catch (JAXRException | BadJobFault_Exception e){
+// 			}catch (JAXRException | BadJobFault_Exception e){
+			} catch (TransporterClientException | BadJobFault_Exception e) {
 				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
 			}
 		}
@@ -194,7 +197,8 @@ public class BrokerPort implements BrokerPortType {
 				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 					// we already checked for these issues, so if the transporter server
 					// doesn't like them just ignore that transporter, its their bug!
-				}catch (JAXRException e){
+// 				}catch (JAXRException e){
+				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
 				}
 			}
@@ -216,7 +220,8 @@ public class BrokerPort implements BrokerPortType {
 				transport.setState(TransportStateView.BOOKED);
 			else
 				transport.setState(TransportStateView.FAILED);
-		}catch (JAXRException | BadJobFault_Exception e){
+// 		}catch (JAXRException | BadJobFault_Exception e){
+		} catch (TransporterClientException | BadJobFault_Exception e) {
 			transport.setState(TransportStateView.FAILED);
 		}
 	}
@@ -231,7 +236,8 @@ public class BrokerPort implements BrokerPortType {
        	try{
 			job = new TransporterClient(_uddiLocation,
 					transport.getTransporterCompany()).getPort().jobStatus(transportIdToJobId(transport));
-		}catch (JAXRException e){
+// 		}catch (JAXRException e){
+		} catch (TransporterClientException e) {
 			// if unable to connect to transporter return job as it is
 			return transport;
 		}
@@ -263,7 +269,8 @@ public class BrokerPort implements BrokerPortType {
 			for(String transporter : transporters) {
 				try{
 					(new TransporterClient(transporter)).getPort().clearJobs();
-				}catch (JAXRException e){
+// 				}catch (JAXRException e){
+				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
 				}
 			}

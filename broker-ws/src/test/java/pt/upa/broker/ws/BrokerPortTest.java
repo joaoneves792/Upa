@@ -6,6 +6,7 @@ import org.junit.*;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
+import pt.upa.transporter.ws.cli.TransporterClientException;
 
 import javax.xml.registry.JAXRException;
 
@@ -328,10 +329,12 @@ public class BrokerPortTest {
                 result = (_underpricedJob);
 
                 _tpt.decideJob((String) any, true);
-                result = (new JAXRException());
+//                 result = (new JAXRException());
+                result = (new TransporterClientException("message"));
 
                 _tpt.jobStatus((String) any);
-                result = new JAXRException();
+//                 result = new JAXRException();
+                result = new TransporterClientException("message");
 
             }
         };
