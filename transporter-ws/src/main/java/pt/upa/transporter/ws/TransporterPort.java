@@ -1,6 +1,7 @@
 package pt.upa.transporter.ws;
 
 import javax.jws.WebService;
+import javax.jws.HandlerChain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.TimerTask;
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
 
+@HandlerChain(file="/handler-chain.xml")
 @WebService(
 	endpointInterface="pt.upa.transporter.ws.TransporterPortType",
     wsdlLocation="transporter.1_0.wsdl",
