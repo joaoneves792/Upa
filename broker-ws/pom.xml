@@ -63,6 +63,12 @@
    			<artifactId>transporter-ws-cli</artifactId>
    			<version>1.0-SNAPSHOT</version>
         </dependency>
+		<!-- handlers -->
+        <dependency>
+            <groupId>pt.upa.a45</groupId>
+            <artifactId>ws-handlers</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
     </dependencies>
 

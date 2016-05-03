@@ -56,7 +56,7 @@
         </dependency>
 		<!-- handlers -->
         <dependency>
-            <groupId>example</groupId>
+            <groupId>pt.upa.a45</groupId>
             <artifactId>ws-handlers</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

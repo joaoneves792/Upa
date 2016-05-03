@@ -14,7 +14,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import example.ws.handler.RelayHandler;
+import pt.upa.ws.handler.SignatureHandler;
 
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
@@ -45,11 +45,11 @@ public class TransporterPort implements TransporterPortType {
 	
 	public void setUpHandler() {
 		MessageContext messageContext = webServiceContext.getMessageContext();
-		String propertyValue = (String) messageContext.get(RelayHandler.REQUEST_PROPERTY);
+		String propertyValue = (String) messageContext.get(SignatureHandler.REQUEST_PROPERTY);
 		System.out.printf("%s got token '%s' from response context%n",
-												RelayHandler.class.getSimpleName(), propertyValue);
+												SignatureHandler.class.getSimpleName(), propertyValue);
 		
-		messageContext.put(RelayHandler.RESPONSE_PROPERTY, _id);
+		messageContext.put(SignatureHandler.RESPONSE_PROPERTY, _id);
 	}
 
 	

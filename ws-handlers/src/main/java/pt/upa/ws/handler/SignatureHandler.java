@@ -1,4 +1,4 @@
-package example.ws.handler;
+package pt.upa.ws.handler;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -19,7 +19,7 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 
 
 
-public class RelayHandler implements SOAPHandler<SOAPMessageContext> {
+public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	public static final String REQUEST_PROPERTY = "my.request.property";
 	public static final String RESPONSE_PROPERTY = "my.response.property";
@@ -30,7 +30,7 @@ public class RelayHandler implements SOAPHandler<SOAPMessageContext> {
 	public static final String RESPONSE_HEADER = "myResponseHeader";
 	public static final String RESPONSE_NS = REQUEST_NS;
 
-	public static final String CLASS_NAME = RelayHandler.class.getSimpleName();
+	public static final String CLASS_NAME = SignatureHandler.class.getSimpleName();
 	public static final String TOKEN = "client-handler";
 	
 	

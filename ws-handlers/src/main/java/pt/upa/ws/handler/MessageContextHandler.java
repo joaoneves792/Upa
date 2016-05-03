@@ -1,4 +1,4 @@
-package example.ws.handler;
+package pt.upa.ws.handler;
 
 import java.util.Set;
 
