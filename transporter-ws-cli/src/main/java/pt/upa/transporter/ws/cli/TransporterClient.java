@@ -40,6 +40,10 @@ public class TransporterClient {
 			BindingProvider bindingProvider = (BindingProvider) port;
 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+
+			requestContext.put("wsName", "transporterClient");
+			requestContext.put("uddiURL", uddiURL);
+
 		}catch (JAXRException e){
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
 			ex.initCause(e);

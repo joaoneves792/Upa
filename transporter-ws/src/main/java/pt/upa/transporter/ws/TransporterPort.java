@@ -32,7 +32,9 @@ public class TransporterPort implements TransporterPortType {
 	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
 	private final int MIN_TIME = 1000;
 	private final int MAX_TIME = 5000;
-	
+
+	private String _uddiURL;
+
 	private int _id;
 	private int _jobCounter;
 	private int _jobMinTime;
@@ -52,6 +54,12 @@ public class TransporterPort implements TransporterPortType {
 		messageContext.put(SignatureHandler.RESPONSE_PROPERTY, _id);
 	}
 
+	private void setContextForHandler(){
+		if(null != webServiceContext){ /*If it is null than we are running the unit tests*/
+			webServiceContext.getMessageContext().put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
+			webServiceContext.getMessageContext().put("uddiURL", _uddiURL);
+		}
+	}
 	
 	// private timer task definition
 	private class ChangeStateTask extends TimerTask {
@@ -69,11 +77,12 @@ public class TransporterPort implements TransporterPortType {
 		}
 	}
 	
-	public TransporterPort(int n) {
+	public TransporterPort(int n, String uddiURL) {
 		_id = n;
 		_jobCounter = 0;
 		_jobMinTime = MIN_TIME;
 		_jobMaxTime = MAX_TIME;
+		_uddiURL = uddiURL;
 	}
 	
 	// public setters to use for tests involving timers
@@ -83,7 +92,7 @@ public class TransporterPort implements TransporterPortType {
 	// auxiliary function to get job with given id
 	private JobView getJob(String id)
 			throws BadJobFault_Exception {
-		
+
 		for(JobView j : _jobs)
 			if(j.getJobIdentifier().equals(id))
 				return j;
@@ -140,6 +149,7 @@ public class TransporterPort implements TransporterPortType {
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
+		setContextForHandler();
 		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
@@ -148,7 +158,8 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView requestJob(String origin, String destination, int price)
  			throws BadLocationFault_Exception, BadPriceFault_Exception {
-		
+
+		setContextForHandler();
 		// check for recognised location and working regions
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
 			return null;
@@ -195,7 +206,8 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
-    		
+
+		setContextForHandler();
 		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
 		
@@ -222,6 +234,7 @@ public class TransporterPort implements TransporterPortType {
 	// returns job current state
 	@Override
 	public JobView jobStatus(String id) {
+		setContextForHandler();
 		try {
 			return getJob(id);
 		} catch (BadJobFault_Exception e) {
@@ -232,12 +245,14 @@ public class TransporterPort implements TransporterPortType {
 	// returns the list of current jobs
 	@Override
 	public List<JobView> listJobs() {
+		setContextForHandler();
 		return _jobs;
 	}
 	
 	// clears the list of current jobs
 	@Override
 	public void clearJobs() {
+		setContextForHandler();
 		_jobs.clear();
 		_jobCounter = 0;
 	}

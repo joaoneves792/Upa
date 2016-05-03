@@ -27,7 +27,9 @@ public class TransporterPortTest {
     private final int ODD_PRICE = 51;
     private final int OVERPRICED_PRICE = 101;
     private final int UNDERPRICED_PRICE = 9;
-	
+
+	private final String UDDI_URL = "http://localhost:9090";
+
     private TransporterPort _transporter;
     public boolean _error;
     
@@ -52,7 +54,7 @@ public class TransporterPortTest {
     @Before
     public void setUp() {
     	_error = false;
-   		_transporter = new TransporterPort(1); //UpaTransporter1
+   		_transporter = new TransporterPort(1, UDDI_URL); //UpaTransporter1
     }
 
     @After
@@ -81,7 +83,7 @@ public class TransporterPortTest {
 	
 	@Test
 	public void requestJobOddTransporterInvalidZone() throws Exception {
-		TransporterPort oddTransporter = new TransporterPort(3);
+		TransporterPort oddTransporter = new TransporterPort(3, UDDI_URL);
 		assertNull("Should return null for invalid origins.",
 				oddTransporter.requestJob(NORTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
 		assertNull("Should return null for invalid destinations.",
@@ -90,7 +92,7 @@ public class TransporterPortTest {
 
 	@Test
 	public void requestJobEvenTransporterInvalidZone() throws Exception {
-		TransporterPort evenTransporter = new TransporterPort(2);
+		TransporterPort evenTransporter = new TransporterPort(2, UDDI_URL);
 		assertNull("Should return null for invalid origins.",
 				evenTransporter.requestJob(SOUTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
 		assertNull("Should return null for invalid destinations.",
@@ -112,33 +114,33 @@ public class TransporterPortTest {
 	
 	@Test
 	public void requestJobOddTransporterOddPrice() throws Exception {
-		int price = new TransporterPort(3).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
+		int price = new TransporterPort(3, UDDI_URL).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
 		assertTrue("Should return a price lower than original.", price < ODD_PRICE);
 		assertTrue("Job prices can't be negative.", price >= 0);
 	}
 	
 	@Test
 	public void requestJobOddTransporterEvenPrice() throws Exception {
-		int price = new TransporterPort(3).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
+		int price = new TransporterPort(3, UDDI_URL).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
 		assertTrue("Should return a price higher than original.", price > EVEN_PRICE);
 	}
 	
 	@Test
 	public void requestJobEvenTransporterOddPrice() throws Exception {
-		int price = new TransporterPort(2).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
+		int price = new TransporterPort(2, UDDI_URL).requestJob(VALID_ORIGIN, VALID_DESTINATION, ODD_PRICE).getJobPrice();
 		assertTrue("Should return a price higher than original.", price > ODD_PRICE);
 	}
 	
 	@Test
 	public void requestJobEvenTransporterEvenPrice() throws Exception {
-		int price = new TransporterPort(2).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
+		int price = new TransporterPort(2, UDDI_URL).requestJob(VALID_ORIGIN, VALID_DESTINATION, EVEN_PRICE).getJobPrice();
 		assertTrue("Should return a price lower than original.", price < EVEN_PRICE);
 		assertTrue("Job prices can't be negative.", price >= 0);
 	}
 	
 	@Test
 	public void requestJobEvenTransporterSucess() throws Exception {
-		TransporterPort evenTransporter = new TransporterPort(2);
+		TransporterPort evenTransporter = new TransporterPort(2, UDDI_URL);
 		assertNotNull("Shouldn't return null for valid origins",
 				evenTransporter.requestJob(NORTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
 		assertNotNull("Shouldn't return null for valid destinations.",
@@ -147,7 +149,7 @@ public class TransporterPortTest {
 
 	@Test
 	public void requestJobOddTransporterSucess() throws Exception {
-		TransporterPort oddTransporter = new TransporterPort(3);
+		TransporterPort oddTransporter = new TransporterPort(3, UDDI_URL);
 		assertNotNull("Shouldn't return null for valid origins",
 				oddTransporter.requestJob(SOUTH_LOCATION, VALID_DESTINATION, VALID_PRICE));
 		assertNotNull("Shouldn't return null for valid destinations.",

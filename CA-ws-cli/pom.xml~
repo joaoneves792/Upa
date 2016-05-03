@@ -4,21 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- http://maven.apache.org/pom.html#Quick_Overview -->
 
-    <groupId>example</groupId>
-    <artifactId>hello-ws-cli_juddi</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
-
-    <dependencies>
-        <!-- UDDI Naming -->
-        <dependency>
-            <groupId>pt.ulisboa.tecnico.sdis</groupId>
-            <artifactId>uddi-naming</artifactId>
-            <version>1.1</version>
-        </dependency>
-    </dependencies>
+    <artifactId>CA-ws-cli</artifactId>
+    <groupId>pt.upa.a45</groupId>
+    <version>1.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,15 +17,28 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <!-- WSDL is required for client code generation -->
-        <ws.url>http://localhost:8080/hello-ws/endpoint</ws.url>
-        <wsdl.url>${ws.url}?WSDL</wsdl.url>
-
-        <mainclass>example.ws.cli.HelloClient</mainclass>
-
         <uddi.url>http://localhost:9090</uddi.url>
-        <ws.name>Hello</ws.name>
+        <ws.name>CA-ws</ws.name>
+	<ws.url>http://localhost:8080/CA-ws/endpoint</ws.url>
+	<wsdl.url>${ws.url}?WSDL</wsdl.url>
+	<mainClass>pt.upa.a45.CA.cli.CAClient</mainClass>
+
     </properties>
+    <dependencies>
+        <!-- UDDI Naming -->
+        <dependency>
+            <groupId>pt.ulisboa.tecnico.sdis</groupId>
+            <artifactId>uddi-naming</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -66,27 +69,6 @@
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.4.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- to prevent deprecation warning: -->
-                    <killAfter>-1</killAfter>
-                    <mainClass>${mainclass}</mainClass>
-                    <arguments>
-                        <argument>${uddi.url}</argument>
-                        <argument>${ws.name}</argument>
-                    </arguments>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
                 <version>1.10</version>
                 <executions>
@@ -105,6 +87,18 @@
                         </program>
                     </programs>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

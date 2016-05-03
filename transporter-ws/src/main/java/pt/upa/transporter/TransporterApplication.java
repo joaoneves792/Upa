@@ -28,7 +28,7 @@ public class TransporterApplication {
 			int n = Character.getNumericValue(name.charAt(name.length()-1));
 			
 // 			TransporterPort port = new TransporterPort();
-			TransporterPort port = new TransporterPort(n);
+			TransporterPort port = new TransporterPort(n, uddiURL);
 			endpoint = Endpoint.create(port);
 
 			// publish endpoint
