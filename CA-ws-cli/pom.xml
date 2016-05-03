@@ -21,7 +21,7 @@
         <ws.name>CA-ws</ws.name>
 	<ws.url>http://localhost:8080/CA-ws/endpoint</ws.url>
 	<wsdl.url>${ws.url}?WSDL</wsdl.url>
-	<mainclass>pt.upa.a45.CA.cli.CAClient</mainclass>
+	<mainClass>pt.upa.a45.CA.cli.CAClient</mainClass>
 
     </properties>
     <dependencies>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>pt.ulisboa.tecnico.sdis</groupId>
             <artifactId>uddi-naming</artifactId>
-            <version>1.1</version>
+            <version>1.0</version>
         </dependency>
         <!-- JUnit -->
         <dependency>

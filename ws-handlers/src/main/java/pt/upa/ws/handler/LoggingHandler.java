@@ -54,16 +54,16 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 		try {
 			TransformerFactory tff = TransformerFactory.newInstance();
 			Transformer tf = tff.newTransformer();
-
+			
 			tf.setOutputProperty(OutputKeys.INDENT, "yes");
 			tf.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 			
 			Source sc = message.getSOAPPart().getContent();
-
+			
 			ByteArrayOutputStream streamOut = new ByteArrayOutputStream();
 			StreamResult result = new StreamResult(streamOut);
 			tf.transform(sc, result);
-
+			
 			String str = streamOut.toString();
 			System.out.println(str);
 		} catch (Exception e) {

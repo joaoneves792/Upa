@@ -72,30 +72,30 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	private void initialize(SOAPMessageContext smc){
 		String name = (String)smc.get("wsName");
 		String uddiURL = (String)smc.get("uddiURL");
-
-		System.out.println("Handler: We are being requested by: " + name);
-
+		
+		System.out.println("[Handler] We are being requested by: " + name);
+		
 		/*if(name.equals("transporterClient"))
 			return;
-
+		
 		loadKeystore(name + ".jks", PASSWORD);
 		try {
 			_ca = new CAClient(uddiURL);
-		}catch (CAException e){
+		} catch (CAException e) {
 			System.err.println("Failed to initialize the CA client " + e.getMessage());
 			System.exit(-1);
 		}*/
-
+		
 	}
 
 	public boolean handleMessage(SOAPMessageContext smc) {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
-
+		
 		/*Initialize the keystore and CA client*/
-		if(null == _ks){
+		if(_ks == null){
 			initialize(smc);
 		}
-
+		
 		if (outbound) {
 			// get token from request context
 			String propertyValue = (String) smc.get(REQUEST_PROPERTY);
