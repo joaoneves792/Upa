@@ -19,9 +19,9 @@
 
         <uddi.url>http://localhost:9090</uddi.url>
         <ws.name>CA-ws</ws.name>
-	<ws.url>http://localhost:8080/CA-ws/endpoint</ws.url>
+	<ws.url>http://localhost:8079/CA-ws/endpoint</ws.url>
 	<wsdl.url>${ws.url}?WSDL</wsdl.url>
-	<mainClass>pt.upa.a45.CA.cli.CAClient</mainClass>
+	<mainclass>pt.upa.a45.CA.cli.CAClient</mainclass>
 
     </properties>
     <dependencies>
