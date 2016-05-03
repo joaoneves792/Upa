@@ -1,4 +1,7 @@
-package pt.upa.a45.CA;
+package pt.upa.a45.CA.cli.it;
+
+import pt.upa.a45.CA.cli.CAClient;
+import pt.upa.a45.CA.cli.CAException;
 
 import org.junit.After;
 import org.junit.Test;
@@ -9,7 +12,9 @@ import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
 
-public class CATest {
+public class CAITTest {
+    private final String UDDI_URL = "http://localhost:9090";
+
     private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
     private final String BROKER = "UpaBroker";
     private final String BROKER_DN = "CN=UpaBroker, OU=SD, O=IST, C=PT";
@@ -18,16 +23,11 @@ public class CATest {
 
     private final String NON_EXISTING_ENTITY = "IdontExist";
 
-    private CAImpl _ca;
-
-    private X509Certificate certFromByteArray(byte[] data)throws Exception{
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(data));
-    }
+    private CAClient _ca;
 
     @org.junit.Before
     public void setUp() throws Exception {
-        _ca = new CAImpl();
+        _ca = new CAClient(UDDI_URL);
     }
 
     @After
@@ -37,7 +37,7 @@ public class CATest {
 
     @Test()
     public void getBrokerCert() throws Exception {
-        X509Certificate cert = certFromByteArray(_ca.getCertificate(BROKER));
+        X509Certificate cert = _ca.getCertificate(BROKER);
         cert.checkValidity();
         assertEquals(BROKER_DN, cert.getSubjectDN().toString());
         assertEquals(CA_DN, cert.getIssuerDN().toString());
@@ -45,7 +45,7 @@ public class CATest {
 
     @Test()
     public void getTransporterCert() throws Exception {
-        X509Certificate cert = certFromByteArray(_ca.getCertificate(TRANSPORTER_COMPANY_PREFIX+"1"));
+        X509Certificate cert = _ca.getCertificate(TRANSPORTER_COMPANY_PREFIX+"1");
         cert.checkValidity();
         assertEquals(TRANSPORTER1_DN, cert.getSubjectDN().toString());
         assertEquals(CA_DN, cert.getIssuerDN().toString());

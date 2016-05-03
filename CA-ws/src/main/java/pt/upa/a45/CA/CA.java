@@ -8,5 +8,5 @@ import java.security.cert.X509Certificate;
  */
 @WebService
 public interface CA {
-    X509Certificate getCertificate(String entity)throws CAException;
+    byte[] getCertificate(String entity)throws CAException;
 }

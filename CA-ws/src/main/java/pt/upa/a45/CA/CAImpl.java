@@ -1,11 +1,10 @@
 package pt.upa.a45.CA;
 
 import javax.jws.WebService;
+import java.io.*;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +43,7 @@ public class CAImpl implements CA{
         return keystore;
     }
 
-    public X509Certificate getCertificate(String entity)throws CAException{
+    public byte[] getCertificate(String entity)throws CAException{
         X509Certificate cert = null;
         try {
             cert = (X509Certificate)_keyStore.getCertificate(entity);
@@ -52,9 +51,21 @@ public class CAImpl implements CA{
             throw new CAException("There is no certificate for the requested entity: " + entity);
         }
 
-        if (null != cert)
-            return cert;
-        else
+        if (null != cert) {
+            byte[] data = certificateToByteArray(cert);
+            if(null != data)
+                return data;
+            else
+                throw new CAException("Failed to convert certificate for sending");
+        }else
             throw new CAException("There is no certificate for the requested entity: " + entity);
+    }
+
+    private byte[] certificateToByteArray(X509Certificate cert){
+        try {
+            return cert.getEncoded();
+        }catch (CertificateEncodingException e){
+            return null;
+        }
     }
 }
