@@ -20,10 +20,7 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPHeaderElement;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.MessageContext.Scope;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
@@ -45,7 +42,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	private final char[] PASSWORD = "123456".toCharArray();
 
-	private KeyStore _ks = null;
+	private final String UDDI_URL = "http://localhost:9090"; /*This shouldnt be a constant, but I dont see any other way (First incoming message)*/
+
+	private static KeyStore _ks = null;
 	private CAClient _ca;
 
 	public Set<QName> getHeaders() {
@@ -69,35 +68,43 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return null;
 	}
 
-	private void initialize(SOAPMessageContext smc){
+	private void initializeKeyStore(SOAPMessageContext smc){
 		String name = (String)smc.get("wsName");
-		String uddiURL = (String)smc.get("uddiURL");
+		//String uddiURL = (String)smc.get("uddiURL");
 		
 		System.out.println("[Handler] We are being requested by: " + name);
 		
-		/*if(name.equals("transporterClient"))
+		if(name.equals("transporterClient"))
 			return;
 		
 		loadKeystore(name + ".jks", PASSWORD);
-		try {
-			_ca = new CAClient(uddiURL);
-		} catch (CAException e) {
-			System.err.println("Failed to initialize the CA client " + e.getMessage());
-			System.exit(-1);
-		}*/
-		
+
 	}
+
+	private void initializeCAClient(){
+		try {
+			_ca = new CAClient(UDDI_URL);
+		} catch (CAException e) {
+			System.err.println("Failed to initializeKeyStore the CA client " + e.getMessage());
+			System.exit(-1);
+		}
+
+	}
+
+
 
 	public boolean handleMessage(SOAPMessageContext smc) {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 		
 		/*Initialize the keystore and CA client*/
-		if(_ks == null) {
-			initialize(smc);
+		if(_ks == null && outbound) {/* If its inbound then we dont need the keystore*/
+			initializeKeyStore(smc);
+		}
+		if(null == _ca){
+			initializeCAClient();
 		}
 		
-		
-// outbound //
+		// outbound //
 		if (outbound) {
 			// get token from request context
 			String propertyValue = (String) smc.get(REQUEST_PROPERTY);
