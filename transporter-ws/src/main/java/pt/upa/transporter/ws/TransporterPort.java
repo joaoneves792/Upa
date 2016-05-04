@@ -45,14 +45,14 @@ public class TransporterPort implements TransporterPortType {
 	@Resource
 	private WebServiceContext webServiceContext;
 	
-	public void setUpHandler() {
-		MessageContext messageContext = webServiceContext.getMessageContext();
-		String propertyValue = (String) messageContext.get(SignatureHandler.REQUEST_PROPERTY);
-		System.out.printf("%s got token '%s' from response context%n",
-												SignatureHandler.class.getSimpleName(), propertyValue);
-		
-		messageContext.put(SignatureHandler.RESPONSE_PROPERTY, _id);
-	}
+// 	public void setUpHandler() {
+// 		MessageContext messageContext = webServiceContext.getMessageContext();
+// 		String propertyValue = (String) messageContext.get(SignatureHandler.REQUEST_PROPERTY);
+// 		System.out.printf("%s got token '%s' from response context%n",
+// 												SignatureHandler.class.getSimpleName(), propertyValue);
+// 		
+// 		messageContext.put(SignatureHandler.RESPONSE_PROPERTY, _id);
+// 	}
 
 	private void setContextForHandler(){
 		if(null != webServiceContext){ /*If it is null than we are running the unit tests*/

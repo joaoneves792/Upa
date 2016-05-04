@@ -32,19 +32,25 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	public static final String CLASS_NAME = SignatureHandler.class.getSimpleName();
 	public static final String TOKEN = "client-handler";
 
-
 	private KeyManager _keyManager;
 
-	public Set<QName> getHeaders() {
-		return null;
+
+	private void addNounce(SOAPEnvelope soapEnvelope, SOAPHeader soapHeader) throws SOAPException {
+// 		Long nounce = new BigInteger(64, new Random().longValue());
+		Name soapNamespace;
+		SOAPHeaderElement soapHElement;
+				
+		soapNamespace = soapEnvelope.createName("nounce", "upa", "http://pt.upa.header");
+		soapHElement = soapHeader.addHeaderElement(soapNamespace);
+// 		soapHElement.addTextNode(nounce.toString());
+		soapHElement.addTextNode("80085");
 	}
-
-
-
+	
+	
 	public boolean handleMessage(SOAPMessageContext smc) {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 		
-		/*Initialize the keystore and CA client*/
+		/* Initialize the keystore and CA client */
 		if(outbound) {
 			String name = (String)smc.get("wsName");
 			_keyManager = KeyManager.getInstance(name);
@@ -52,20 +58,25 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			_keyManager = KeyManager.getInstance(null);
 		}
 		
-		// outbound //
+// outbound //
 		if (outbound) {
-
-			/*THIS is an example on how to get your own private key and everyone else's certificates -->*/
+		// THIS is an example on how to get your own private key and everyone else's certificates
+		// ----------------------------->
 			try {
-				PrivateKey mykey = _keyManager.getMyPrivateKey(); //You can only get your private key when message is outbound
-				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1"); //Certs you can get whenever you want
+				//You can only get your private key when message is outbound
+				PrivateKey mykey = _keyManager.getMyPrivateKey(); 
+				
+				 //Certs you can get whenever you want
+				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1");
 				X509Certificate cert2 = _keyManager.getCertificate("UpaTransporter2");
 				X509Certificate cert3 = _keyManager.getCertificate("UpaBroker");
-
-				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); //Force to refresh this certificate
-
-				X509Certificate cacert = _keyManager.getCACertificate(); //Get the CA certificate (stored locally on our Keystore)
-
+				
+				//Force to refresh this certificate
+				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); 
+				
+				//Get the CA certificate (stored locally on our Keystore)
+				X509Certificate cacert = _keyManager.getCACertificate(); 
+				
 				/*Some asserts for testing...*/
 				assert null != cacert;
 				assert null != forcedRefreshCert;
@@ -77,11 +88,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				System.out.println(e.toString());
 				System.exit(-1);
 			}
-			/*<----*/
-
-			// get token from request context
-			String propertyValue = (String) smc.get(REQUEST_PROPERTY);
-			System.out.printf("%s received '%s'%n", CLASS_NAME, propertyValue);
+		// <-------------------------------
 			
 			// put token in request SOAP header
 			try {
@@ -95,13 +102,11 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				SOAPHeaderElement soapHElement;
 				
 				// add header element (name, namespace prefix, namespace)
-				soapNamespace = soapEnvelope.createName("nounce", "upa", "http://pt.upa.header");
-				soapHElement = soapHeader.addHeaderElement(soapNamespace);
-				soapHElement.addTextNode("80085");
+				addNounce(soapEnvelope, soapHeader);
 				
 				soapNamespace = soapEnvelope.createName("sender", "upa", "http://pt.upa.header");
 				soapHElement = soapHeader.addHeaderElement(soapNamespace);
-				soapHElement.addTextNode("__sender_name__");
+				soapHElement.addTextNode((String)smc.get("wsName"));
 				
 				soapNamespace = soapEnvelope.createName("signature", "upa", "http://pt.upa.header");
 				soapHElement = soapHeader.addHeaderElement(soapNamespace);
@@ -133,13 +138,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				it = soapHeader.getChildElements(soapNamespace);
 				// check header element
 				if (!it.hasNext()) {
-					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
-					return true;
+					System.out.println("Nounce element not found.");
+					return false;
 				}
 				soapElement = (SOAPElement) it.next();
 				
 				headerValue = soapElement.getValue();
-				System.out.printf("%s got (nounce)\t\t'%s' %n", CLASS_NAME, headerValue);
+				System.out.println("SignatureHandler got (nounce)\t\t" + headerValue);
 				
 				
 				// get sender header element
@@ -147,26 +152,26 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				it = soapHeader.getChildElements(soapNamespace);
 				// check header element
 				if (!it.hasNext()) {
-					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
-					return true;
+					System.out.println("Sender element not found.");
+					return false;
 				}
 				soapElement = (SOAPElement) it.next();
 				
 				headerValue = soapElement.getValue();
-				System.out.printf("%s got (sender)\t\t'%s'%n", CLASS_NAME, headerValue);
+				System.out.println("SignatureHandler got (sender)\t\t" + headerValue);
 				
 				// get signature header element
 				soapNamespace = soapEnvelope.createName("signature", "upa", "http://pt.upa.header");
 				it = soapHeader.getChildElements(soapNamespace);
 				// check header element
 				if (!it.hasNext()) {
-					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
-					return true;
+					System.out.println("Signature element not found.");
+					return false;
 				}
 				soapElement = (SOAPElement) it.next();
 				
 				headerValue = soapElement.getValue();
-				System.out.printf("%s got (signature)\t'%s' %n", CLASS_NAME, headerValue);
+				System.out.println("SignatureHandler got (signature)\t\t" + headerValue);
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to get SOAP header because of %s%n", e);
@@ -177,13 +182,17 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return true;
 	}
 
+		
 	public boolean handleFault(SOAPMessageContext smc) {
 		return true;
 	}
 
-
 	public void close(MessageContext messageContext) {
 		
 	}
-
+	
+	public Set<QName> getHeaders() {
+		return null;
+	}
+	
 }

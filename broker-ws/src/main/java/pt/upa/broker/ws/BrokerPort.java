@@ -13,6 +13,9 @@ import javax.xml.ws.BindingProvider;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
+import javax.annotation.Resource;
+import javax.xml.ws.WebServiceContext;
+
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
 import pt.upa.transporter.ws.cli.TransporterClientException;
@@ -32,7 +35,12 @@ public class BrokerPort implements BrokerPortType {
 
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
+	
+	
+	@Resource
+	private WebServiceContext webServiceContext;
 
+	
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
 	}
@@ -51,6 +59,15 @@ public class BrokerPort implements BrokerPortType {
 			}
 		}
 	}
+	
+	
+// 	private void setContextForHandler(){
+// 		if(null != webServiceContext){ // If null, then we are running the unit tests
+// 			webServiceContext.getMessageContext().put("wsName", "UpaBroker");
+// 			webServiceContext.getMessageContext().put("uddiURL", _uddiLocation);
+// 		}
+// 	}
+	
 	
 	// auxiliary function to get transport with given id
 	private TransportView getTransport(String id)
@@ -120,7 +137,7 @@ public class BrokerPort implements BrokerPortType {
 		try {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
-
+			
 			for (String transporter : transporters) {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
@@ -139,6 +156,8 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public String requestTransport(String origin, String destination, int price)
             throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	
+//     	setContextForHandler();
     	
 		if(price < 0){
 			InvalidPriceFault fault = new InvalidPriceFault();
@@ -176,7 +195,6 @@ public class BrokerPort implements BrokerPortType {
 			try {
 				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
 				client.getPort().decideJob(j.getJobIdentifier(), false);
-// 			}catch (JAXRException | BadJobFault_Exception e){
 			} catch (TransporterClientException | BadJobFault_Exception e) {
 				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
 			}
@@ -199,6 +217,9 @@ public class BrokerPort implements BrokerPortType {
 	// returns a list of the jobs proposed by the transporters
 	private List<JobView> getJobProposals(String origin, String destination, int price) throws UnavailableTransportFault_Exception {
 		List<JobView> availableJobs = new ArrayList<>();
+		
+//     	setContextForHandler();
+		
 		try{
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
@@ -229,6 +250,9 @@ public class BrokerPort implements BrokerPortType {
 
 	// confirm transport
 	private void bookJob(TransportView transport) {
+		
+// 		setContextForHandler();
+		
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
 			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
@@ -236,7 +260,6 @@ public class BrokerPort implements BrokerPortType {
 				transport.setState(TransportStateView.BOOKED);
 			else
 				transport.setState(TransportStateView.FAILED);
-// 		}catch (JAXRException | BadJobFault_Exception e){
 		} catch (TransporterClientException | BadJobFault_Exception e) {
 			transport.setState(TransportStateView.FAILED);
 		}
@@ -244,15 +267,16 @@ public class BrokerPort implements BrokerPortType {
 
 	// returns transport current state (updated)
 	@Override
-    public TransportView viewTransport(String id)
-            throws UnknownTransportFault_Exception {
+    public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
+    
         JobView job;
         TransportView transport = getTransport(id);
         
+// 		setContextForHandler();
+		
        	try{
 			job = new TransporterClient(_uddiLocation,
 					transport.getTransporterCompany()).getPort().jobStatus(transportIdToJobId(transport));
-// 		}catch (JAXRException e){
 		} catch (TransporterClientException e) {
 			// if unable to connect to transporter return job as it is
 			return transport;
@@ -279,13 +303,15 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public void clearTransports() {
     	_transportList.clear();
+    	
+// 		setContextForHandler();
+		
 		try{
 			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX + "_");
 
 			for(String transporter : transporters) {
 				try{
 					(new TransporterClient(transporter)).getPort().clearJobs();
-// 				}catch (JAXRException e){
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
 				}
