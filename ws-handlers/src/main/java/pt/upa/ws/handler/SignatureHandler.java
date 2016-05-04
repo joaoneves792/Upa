@@ -92,10 +92,12 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 		
 		/*Initialize the keystore and CA client*/
-		if(_ks == null){
+		if(_ks == null) {
 			initialize(smc);
 		}
 		
+		
+// outbound //
 		if (outbound) {
 			// get token from request context
 			String propertyValue = (String) smc.get(REQUEST_PROPERTY);
@@ -103,66 +105,88 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			
 			// put token in request SOAP header
 			try {
-				// get SOAP envelope
-				SOAPMessage msg = smc.getMessage();
-				SOAPPart sp = msg.getSOAPPart();
-				SOAPEnvelope se = sp.getEnvelope();
+				SOAPEnvelope soapEnvelope = smc.getMessage().getSOAPPart().getEnvelope();
 				
-				// add header
-				SOAPHeader sh = se.getHeader();
-				if (sh == null)
-					sh = se.addHeader();
+				SOAPHeader soapHeader = soapEnvelope.getHeader();
+				if (soapHeader == null)
+					soapHeader = soapEnvelope.addHeader();
+				
+				Name soapNamespace;
+				SOAPHeaderElement soapHElement;
 				
 				// add header element (name, namespace prefix, namespace)
-				Name name = se.createName(REQUEST_HEADER, "e", REQUEST_NS);
-				SOAPHeaderElement element = sh.addHeaderElement(name);
+				soapNamespace = soapEnvelope.createName("nounce", "upa", "http://pt.upa.header");
+				soapHElement = soapHeader.addHeaderElement(soapNamespace);
+				soapHElement.addTextNode("80085");
 				
-				// add header element value
-				String newValue = propertyValue + "," + TOKEN;
-				element.addTextNode(newValue);
+				soapNamespace = soapEnvelope.createName("sender", "upa", "http://pt.upa.header");
+				soapHElement = soapHeader.addHeaderElement(soapNamespace);
+				soapHElement.addTextNode("__sender_name__");
 				
-				System.out.printf("%s put token '%s' on request message header%n", CLASS_NAME, newValue);
+				soapNamespace = soapEnvelope.createName("signature", "upa", "http://pt.upa.header");
+				soapHElement = soapHeader.addHeaderElement(soapNamespace);
+				soapHElement.addTextNode("__signature_place_holder__");
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to add SOAP header because of %s%n", e);
 			}
 			
-		} else {	// inbound
-			// get token from response SOAP header
+// inbound //
+		} else {
 			try {
-				// get SOAP envelope header
-				SOAPMessage msg = smc.getMessage();
-				SOAPPart sp = msg.getSOAPPart();
-				SOAPEnvelope se = sp.getEnvelope();
-				SOAPHeader sh = se.getHeader();
+				SOAPEnvelope soapEnvelope = smc.getMessage().getSOAPPart().getEnvelope();
+				SOAPHeader soapHeader = soapEnvelope.getHeader();
+				
+				Name soapNamespace;
+				SOAPElement soapElement;
+				Iterator it;
+				String headerValue;
 				
 				// check header
-				if (sh == null) {
+				if (soapHeader == null) {
 					System.out.println("Header not found.");
 					return true;
 				}
 				
-				// get first header element
-				Name name = se.createName(RESPONSE_HEADER, "e", RESPONSE_NS);
-				Iterator it = sh.getChildElements(name);
+				// get nounce header element
+				soapNamespace = soapEnvelope.createName("nounce", "upa", "http://pt.upa.header");
+				it = soapHeader.getChildElements(soapNamespace);
 				// check header element
 				if (!it.hasNext()) {
 					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
 					return true;
 				}
-				SOAPElement element = (SOAPElement) it.next();
+				soapElement = (SOAPElement) it.next();
 				
-				// get header element value
-				String headerValue = element.getValue();
-				System.out.printf("%s got '%s'%n", CLASS_NAME, headerValue);
+				headerValue = soapElement.getValue();
+				System.out.printf("%s got (nounce)\t\t'%s' %n", CLASS_NAME, headerValue);
 				
-				// put token in response context
-				String newValue = headerValue + "," + TOKEN;
-				System.out.printf("%s put token '%s' on response context%n", CLASS_NAME, TOKEN);
-				smc.put(RESPONSE_PROPERTY, newValue);
-				// set property scope to application so that client class can
-				// access property
-				smc.setScope(RESPONSE_PROPERTY, Scope.APPLICATION);
+				
+				// get sender header element
+				soapNamespace = soapEnvelope.createName("sender", "upa", "http://pt.upa.header");
+				it = soapHeader.getChildElements(soapNamespace);
+				// check header element
+				if (!it.hasNext()) {
+					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
+					return true;
+				}
+				soapElement = (SOAPElement) it.next();
+				
+				headerValue = soapElement.getValue();
+				System.out.printf("%s got (sender)\t\t'%s'%n", CLASS_NAME, headerValue);
+				
+				// get signature header element
+				soapNamespace = soapEnvelope.createName("signature", "upa", "http://pt.upa.header");
+				it = soapHeader.getChildElements(soapNamespace);
+				// check header element
+				if (!it.hasNext()) {
+					System.out.printf("Header element %s not found.%n", RESPONSE_HEADER);
+					return true;
+				}
+				soapElement = (SOAPElement) it.next();
+				
+				headerValue = soapElement.getValue();
+				System.out.printf("%s got (signature)\t'%s' %n", CLASS_NAME, headerValue);
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to get SOAP header because of %s%n", e);
