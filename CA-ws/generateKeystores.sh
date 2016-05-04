@@ -62,4 +62,4 @@ createEntity "$BROKER"
 createEntity "$TRANSPORTER"1
 createEntity "$TRANSPORTER"2
 
-rm cacert.pem key.pem
+rm key.pem

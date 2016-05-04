@@ -8,8 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.cert.*;
 import java.util.Hashtable;
 
 /**
@@ -19,8 +18,10 @@ public class KeyManager {
 
 
     private static final char[] PASSWORD = "123456".toCharArray();
-
     private static final String UDDI_URL = "http://localhost:9090"; /*This shouldnt be a constant, but I dont see any other way (First incoming message)*/
+    private static final String CACERT_FILENAME = "cacert.pem";
+    private static final String CACERT = "cacert";
+    private static final String MYKEY = "mykey";
 
     private static KeyStore _ks;
     private static CAClient _ca;
@@ -52,6 +53,8 @@ public class KeyManager {
     private static KeyStore loadKeystore(String name, char[] password){
         System.out.println("[Handler]: Loading keystore for: "+ name);
 
+        loadCACertificate();
+
         FileInputStream fis;
         String filename = name + ".jks";
         try {
@@ -80,7 +83,7 @@ public class KeyManager {
 
     public static PrivateKey getMyPrivateKey() throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException{
         KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(PASSWORD);
-        return ((KeyStore.PrivateKeyEntry)(_ks.getEntry("mykey", protParam))).getPrivateKey();
+        return ((KeyStore.PrivateKeyEntry)(_ks.getEntry(MYKEY, protParam))).getPrivateKey();
     }
 
     public static X509Certificate getCertificate(String entity)throws CAException{
@@ -96,7 +99,19 @@ public class KeyManager {
         return cert;
     }
 
-    public static X509Certificate getCACertificate()throws KeyStoreException{
-        return (X509Certificate)_ks.getCertificate("cacert");
+    public static X509Certificate getCACertificate(){
+        return _certCache.get(CACERT);
+    }
+
+    private static void loadCACertificate(){
+        try{
+            X509Certificate cacert = (X509Certificate) CertificateFactory.getInstance("X509").generateCertificate(new FileInputStream(CACERT_FILENAME));
+            cacert.checkValidity();
+            _certCache.put(CACERT, cacert);
+        }catch(CertificateException | FileNotFoundException e){
+            System.err.println("Failed to load the CA root certificate, error: "+ e.toString() + e.getMessage());
+            System.exit(-1);
+        }
+
     }
 }
