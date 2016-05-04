@@ -34,6 +34,13 @@ public class BrokerPort implements BrokerPortType {
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
 	}
+
+	public BrokerPort(String uddiLocation, boolean backupMode) {
+		this(uddiLocation);
+		
+		if (backupMode)
+			System.out.println("BACKUP MODE ON");
+	}
 	
 	// auxiliary function to get transport with given id
 	private TransportView getTransport(String id)

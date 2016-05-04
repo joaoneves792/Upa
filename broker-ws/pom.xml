@@ -23,10 +23,12 @@
 
         <mainclass>pt.upa.broker.BrokerApplication</mainclass>
 
-        <ws.url>http://localhost:8080/broker-ws/endpoint</ws.url>
+        <uddi.url>http://localhost:9090</uddi.url>
 
         <ws.name>UpaBroker</ws.name>
-        <uddi.url>http://localhost:9090</uddi.url>
+        <ws.port>8080</ws.port>
+        <ws.url>http://localhost:${ws.port}/broker-ws/endpoint</ws.url>
+        <ws.backupMode>false</ws.backupMode>
     </properties>
 
     <dependencies>
@@ -137,6 +139,7 @@
                         <argument>${uddi.url}</argument>
                         <argument>${ws.name}</argument>
                         <argument>${ws.url}</argument>
+                        <argument>${ws.backupMode}</argument>
                     </arguments>
                 </configuration>
             </plugin>

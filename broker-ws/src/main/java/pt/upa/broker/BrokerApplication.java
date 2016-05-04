@@ -13,18 +13,24 @@ public class BrokerApplication {
 		// Check arguments
 		if (args.length < 3) {
 			System.err.println("Argument(s) missing!");
-			System.err.printf("Usage: java %s uddiURL wsName wsURL%n", BrokerApplication.class.getName());
+			System.err.printf("Usage: java %s uddiURL wsName wsURL [wsBackupMode]%n", BrokerApplication.class.getName());
 			return;
 		}
 		
 		String uddiURL = args[0];
 		String name = args[1];
 		String url = args[2];
+		boolean backupMode = false;
+		
+		if (args.length >= 4 && (args[3].equals("true") || args[3].equals("True"))){
+			name = name + "Backup";
+			backupMode = true;
+		}
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
 		try {
-			BrokerPort port = new BrokerPort(uddiURL);
+			BrokerPort port = new BrokerPort(uddiURL, backupMode);
 			endpoint = Endpoint.create(port);
 
 			// publish endpoint
