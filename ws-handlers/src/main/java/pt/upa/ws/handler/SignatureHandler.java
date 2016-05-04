@@ -45,10 +45,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 		
 		/*Initialize the keystore and CA client*/
-		if(outbound) {/* If its inbound then we dont need the keystore (and in fact we cant even know which one is outs)*/
+		if(outbound) {
 			String name = (String)smc.get("wsName");
 			_keyManager = KeyManager.getInstance(name);
-		}else{
+		}else{ //TODO: We have a problem here, we dont know who we are! (We actually need to know so we can load the CA certificate!)
 			_keyManager = KeyManager.getInstance(null);
 		}
 		
@@ -57,10 +57,14 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 			/*THIS is an example on how to get your own private key and everyone else's certificates -->*/
 			try {
-				PrivateKey mykey = _keyManager.getMyPrivateKey(); //You can only get your private key when message is outbound
+				PrivateKey mykey = _keyManager.getMyPrivateKey(); //TODO: Right now you can only get your private key when message is outbound
 				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1"); //Certs you can get whenever you want
 				X509Certificate cert2 = _keyManager.getCertificate("UpaTransporter2");
 				X509Certificate cert3 = _keyManager.getCertificate("UpaBroker");
+
+				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); //Force to refresh this certificate
+
+				X509Certificate cacert = _keyManager.getCACertificate(); //Get the CA certificate (stored locally on our Keystore)
 			}catch (Exception e){
 				System.out.println(e.toString());
 				System.exit(-1);

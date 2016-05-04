@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Hashtable;
 
 /**
  * Created by joao on 5/4/16.
@@ -23,6 +24,8 @@ public class KeyManager {
 
     private static KeyStore _ks;
     private static CAClient _ca;
+
+    private static Hashtable<String, X509Certificate> _certCache = new Hashtable<>();
 
     private static KeyManager instance = null;
 
@@ -81,8 +84,19 @@ public class KeyManager {
     }
 
     public static X509Certificate getCertificate(String entity)throws CAException{
-        //TODO: implement a cache
-        return _ca.getCertificate(entity);
+        if(_certCache.containsKey(entity))
+            return _certCache.get(entity);
+
+        return forceCertificateRefresh(entity);
     }
 
+    public static X509Certificate forceCertificateRefresh(String entity)throws CAException{
+        X509Certificate cert = _ca.getCertificate(entity);
+        _certCache.put(entity, cert);
+        return cert;
+    }
+
+    public static X509Certificate getCACertificate()throws KeyStoreException{
+        return (X509Certificate)_ks.getCertificate("cacert");
+    }
 }
