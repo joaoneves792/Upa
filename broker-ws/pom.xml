@@ -58,11 +58,16 @@
             <artifactId>uddi-naming</artifactId>
             <version>1.0</version>
         </dependency>
-        
         <!-- Transporter Client -->
         <dependency>
            	<groupId>pt.upa.a45</groupId>
    			<artifactId>transporter-ws-cli</artifactId>
+   			<version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!-- Broker Client -->
+        <dependency>
+           	<groupId>pt.upa.a45</groupId>
+   			<artifactId>broker-ws-cli</artifactId>
    			<version>1.0-SNAPSHOT</version>
         </dependency>
 		<!-- handlers -->

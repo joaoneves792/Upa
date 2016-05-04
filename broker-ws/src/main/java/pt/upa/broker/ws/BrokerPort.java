@@ -16,6 +16,8 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
 import pt.upa.transporter.ws.cli.TransporterClientException;
+import pt.upa.broker.ws.cli.BrokerClient;
+import pt.upa.broker.ws.cli.BrokerClientException;
 
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
@@ -40,6 +42,14 @@ public class BrokerPort implements BrokerPortType {
 		
 		if (backupMode)
 			System.out.println("BACKUP MODE ON");
+		else {
+			try{
+				BrokerClient client = new BrokerClient(_uddiLocation, "UpaBrokerBackup");
+				System.out.println("Backup Server found!");
+			} catch (BrokerClientException e) {
+				System.out.println("Backup Server not found!");
+			}
+		}
 	}
 	
 	// auxiliary function to get transport with given id
@@ -115,9 +125,8 @@ public class BrokerPort implements BrokerPortType {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
 					result = client.port.ping(result);
-// 				}catch (JAXRException e){
 				} catch (TransporterClientException e) {
-					result += " " + transporter + " failed! ";
+					result += " " + transporter + " Failed ";
 				}
 			}
 		} catch(JAXRException e){

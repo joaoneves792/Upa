@@ -54,19 +54,6 @@
             <artifactId>uddi-naming</artifactId>
             <version>1.0</version>
         </dependency>
-
-		<!-- Transporter -->
-        <dependency>
-           	<groupId>pt.upa.a45</groupId>
-   			<artifactId>transporter-ws</artifactId>
-   			<version>1.0-SNAPSHOT</version>
-        </dependency>
-		<!-- Broker -->
-        <dependency>
-           	<groupId>pt.upa.a45</groupId>
-   			<artifactId>broker-ws</artifactId>
-   			<version>1.0-SNAPSHOT</version>
-        </dependency>
 		<!-- handlers -->
         <dependency>
             <groupId>pt.upa.a45</groupId>
