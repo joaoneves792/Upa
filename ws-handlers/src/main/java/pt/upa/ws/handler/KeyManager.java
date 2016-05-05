@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.*;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by joao on 5/4/16.
@@ -29,14 +31,43 @@ public class KeyManager {
     private static Hashtable<String, X509Certificate> _certCache = new Hashtable<>();
 
     private static KeyManager instance = null;
+    
+    private Map<String, Map<String, String>> _nounces;
+    
+    
+    
+    private void initNounceMaps() {
+		_nounces = new TreeMap<String, Map<String, String>>();
+		
+		_nounces.put("UpaTransporter1sent", new TreeMap<String, String>());
+		_nounces.put("UpaTransporter1recieved", new TreeMap<String, String>());
+		_nounces.put("UpaTransporter2sent", new TreeMap<String, String>());
+		_nounces.put("UpaTransporter2recieved", new TreeMap<String, String>());
+		_nounces.put("UpaBrokersent", new TreeMap<String, String>());
+		// broker may receive the same nounce from diferent transporters
+		_nounces.put("UpaBrokerUpaTransporter1recieved", new TreeMap<String, String>());
+		_nounces.put("UpaBrokerUpaTransporter2recieved", new TreeMap<String, String>());
+    }
+    
+    public void addNounce(String treeId, String nounce) {
+		_nounces.get(treeId).put(nounce, nounce);
+    }
+    
+    public boolean containsNounce(String treeId, String nounce) {
+		return _nounces.get(treeId).containsKey(nounce);
+    }
+    
+    
 
     private KeyManager(String keystore){
         _ks = loadKeystore(keystore, PASSWORD);
         initializeCAClient();
+        initNounceMaps();
     }
 
     private KeyManager(){
         initializeCAClient();
+        initNounceMaps();
     }
 
     public static KeyManager getInstance(String keystore){
@@ -52,9 +83,9 @@ public class KeyManager {
 
     private static KeyStore loadKeystore(String name, char[] password){
         System.out.println("[Handler]: Loading keystore for: "+ name);
-
+		
         loadCACertificate();
-
+		
         FileInputStream fis;
         String filename = name + ".jks";
         try {
@@ -89,7 +120,7 @@ public class KeyManager {
     public static X509Certificate getCertificate(String entity)throws CAException{
         if(_certCache.containsKey(entity))
             return _certCache.get(entity);
-
+			
         return forceCertificateRefresh(entity);
     }
 

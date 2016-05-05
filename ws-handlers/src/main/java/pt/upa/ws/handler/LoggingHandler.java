@@ -25,14 +25,12 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
 	
 	public boolean handleMessage(SOAPMessageContext smc) {
-// 		logToSystemOut(smc);
 		printSOAP(smc);
 		return true;
 	}
 
 	
 	public boolean handleFault(SOAPMessageContext smc) {
-// 		logToSystemOut(smc);
 		printSOAP(smc);
 		return true;
 	}
@@ -79,15 +77,14 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
      * IOException
      */
     private void logToSystemOut(SOAPMessageContext smc) {
-        Boolean outbound = (Boolean) smc
-                .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
-
+        Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
+		
         if (outbound) {
             System.out.println("\nOutbound SOAP message:");
         } else {
             System.out.println("\nInbound SOAP message:");
         }
-
+		
         SOAPMessage message = smc.getMessage();
         try {
             message.writeTo(System.out);

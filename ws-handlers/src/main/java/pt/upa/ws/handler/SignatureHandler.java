@@ -53,19 +53,21 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return (SOAPElement) it.next();
 	}
 	
-	private String getSecureRandom() throws NoSuchAlgorithmException {
-		
-		SecureRandom nounce = SecureRandom.getInstance("SHA1PRNG");
+	private String getSecureRandom(String senderName) throws NoSuchAlgorithmException {
+		SecureRandom nounce;
 		final byte array[] = new byte[16];
-		nounce.nextBytes(array);
+		String str = "";
+		do {
+			nounce = SecureRandom.getInstance("SHA1PRNG");
+			nounce.nextBytes(array);
+			str = printHexBinary(array);
+			
+		} while(_keyManager.containsNounce(senderName+"sent", str));
 		
-		// FIXME make sure is not repeated
-		
-		return printHexBinary(array);
+		return str;
 	}
 	
-	private String getDigestedMAC(String input)
-				throws NoSuchAlgorithmException, GeneralSecurityException {
+	private String getSignedDigest(String input) throws NoSuchAlgorithmException, GeneralSecurityException {
 		final byte[] bytes = input.getBytes();
 		
 		MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
@@ -147,13 +149,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				if (soapHeader == null)
 					soapHeader = soapEnvelope.addHeader();
 				
-				final String nounce = getSecureRandom();
-				addHeaderElement(soapEnvelope, "nounce", nounce);
-				
 				final String senderName = (String)smc.get("wsName");
 				addHeaderElement(soapEnvelope, "sender", senderName);
 				
-				final String signature = getDigestedMAC(nounce + senderName + getSOAPBodyAsString(smc));
+				final String nounce = getSecureRandom(senderName);
+				addHeaderElement(soapEnvelope, "nounce", nounce);
+				
+				final String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
 				addHeaderElement(soapEnvelope, "signature", signature);
 				
 			} catch (SOAPException e) {
@@ -180,18 +182,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return true;
 				}
 				
-				// get nounce header element
-				headerElement = getHeaderElement(soapEnvelope, "nounce");
-				if(headerElement == null) {
-					System.out.println("Nounce element not found.");
-					return false;
-				}
-				String nounce = headerElement.getValue();
-				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
-				
-				// FIXME verify new nounce
-				
-				
 				// get sender header element
 				headerElement = getHeaderElement(soapEnvelope, "sender");
 				if(headerElement == null) {
@@ -199,11 +189,24 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String senderName = headerElement.getValue();
-				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
+// 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
 				
-// 				X509Certificate cert = _keyManager.getCertificate(senderName);
+				X509Certificate cert = _keyManager.getCertificate(senderName);
 				// FIXME get public key
 				
+				// get nounce header element
+				headerElement = getHeaderElement(soapEnvelope, "nounce");
+				if(headerElement == null) {
+					System.out.println("Nounce element not found.");
+					return false;
+				}
+				String nounce = headerElement.getValue();
+// 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
+				if(!senderName.equals("UpaBroker"))
+					if(_keyManager.containsNounce("UpaBroker"+senderName+"recieved", nounce)) {
+					System.out.println("Repeated nounce.");
+					return false;
+				}
 				
 				// get signature header element
 				headerElement = getHeaderElement(soapEnvelope, "signature");
@@ -212,7 +215,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String signature = headerElement.getValue();
-				System.out.println("SignatureHandler got (sender)\t\t" + signature);	
+// 				System.out.println("SignatureHandler got (sender)\t\t" + signature);	
 				
 				// FIXME verify signature
 				
@@ -222,7 +225,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				System.out.println(e.toString());
 				System.exit(-1);
 			}
-			
 		}
 		
 		return true;
@@ -240,41 +242,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	public Set<QName> getHeaders() {
 		return null;
 	}
-	
-	
-// // deprecated //
-// 	
-// 	private void addNounce(SOAPEnvelope soapEnv, SOAPHeader soapHeader, String name)
-// 															throws SOAPException,  NoSuchAlgorithmException {
-// 		SecureRandom nounce = SecureRandom.getInstance("SHA1PRNG");
-// 		final byte array[] = new byte[16];
-// 		nounce.nextBytes(array);
-// 		
-// 		Name soapNamespace;
-// 		SOAPHeaderElement soapHElement;
-// 		
-// 		soapNamespace = soapEnv.createName("nounce", "upa", "http://pt.upa.header");
-// 		soapHElement = soapHeader.addHeaderElement(soapNamespace);
-// 		soapHElement.addTextNode(printHexBinary(array));
-// 	}
-// 	
-// 	private void addSenderName(SOAPEnvelope soapEnv, SOAPHeader soapHeader, String name) throws SOAPException {
-// 		Name soapNamespace;
-// 		SOAPHeaderElement soapHElement;
-// 		
-// 		soapNamespace = soapEnv.createName("sender", "upa", "http://pt.upa.header");
-// 		soapHElement = soapHeader.addHeaderElement(soapNamespace);
-// 		soapHElement.addTextNode(name);
-// 	}
-// 	
-// 	private void signMessage(SOAPEnvelope soapEnv, SOAPHeader soapHeader) throws SOAPException {
-// 		Name soapNamespace;
-// 		SOAPHeaderElement soapHElement;
-// 		
-// 		soapNamespace = soapEnv.createName("signature", "upa", "http://pt.upa.header");
-// 		soapHElement = soapHeader.addHeaderElement(soapNamespace);
-// 		soapHElement.addTextNode("__signature_place_holder__");
-// 	}
 	
 	
 }
