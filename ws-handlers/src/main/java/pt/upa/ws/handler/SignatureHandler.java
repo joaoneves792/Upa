@@ -4,7 +4,9 @@ import static javax.xml.bind.DatatypeConverter.printHexBinary;
 import java.security.SecureRandom;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.security.NoSuchAlgorithmException;
 import java.security.GeneralSecurityException;
@@ -23,6 +25,8 @@ import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
+import javax.xml.bind.DatatypeConverter;
+
 
 
 import java.io.StringWriter;
@@ -64,24 +68,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			
 		} while(_keyManager.containsNounce(senderName+"sent", str));
 		
+		_keyManager.addNounce(senderName+"sent", str);
 		return str;
-	}
-	
-	private String getSignedDigest(String input) throws NoSuchAlgorithmException, GeneralSecurityException {
-		final byte[] bytes = input.getBytes();
-		
-		MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-		messageDigest.update(bytes);
-		byte[] digest = messageDigest.digest();
-		
-		PrivateKey privateKey = _keyManager.getMyPrivateKey();
-		Signature sig = Signature.getInstance("SHA1WithRSA");
-		
-		sig.initSign(privateKey);
-		sig.update(digest);
-		byte[] output = sig.sign();
-		
-		return printHexBinary(output);
 	}
 	
 	// FIXME throw right exceptions
@@ -94,6 +82,36 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		tff.newTransformer().transform(source, new StreamResult(stringResult));
 		
 		return stringResult.toString();
+	}
+	
+	private String getSignedDigest(String input) throws NoSuchAlgorithmException, GeneralSecurityException {
+		final byte[] bytes = input.getBytes();
+		
+		PrivateKey privateKey = _keyManager.getMyPrivateKey();
+		Signature sig = Signature.getInstance("SHA1WithRSA");
+		
+		sig.initSign(privateKey);
+		sig.update(bytes);
+		byte[] output = sig.sign();
+		
+		return printHexBinary(output);
+	}
+	
+	private boolean signatureIsValid(String signature, String message, PublicKey publicKey) throws Exception {
+		// signature comes in hexadecimal
+		// message os computed localy and is a regular string
+		final byte[] signatureBytes = DatatypeConverter.parseHexBinary(signature);
+		final byte[] digestBytes = message.getBytes();
+		
+		Signature sig = Signature.getInstance("SHA1WithRSA");
+		sig.initVerify(publicKey);
+		sig.update(digestBytes);
+		try {
+			return sig.verify(signatureBytes);
+		} catch (SignatureException se) {
+			System.err.println("Caught exception while verifying signature " + se);
+			return false;
+		}
 	}
 
 	
@@ -173,7 +191,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			try {
 				SOAPEnvelope soapEnvelope = smc.getMessage().getSOAPPart().getEnvelope();
 				SOAPHeader soapHeader = soapEnvelope.getHeader();
-
+				
 				SOAPElement headerElement;
 				
 				// check header
@@ -192,7 +210,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 // 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
 				
 				X509Certificate cert = _keyManager.getCertificate(senderName);
-				// FIXME get public key
+				PublicKey publicKey = cert.getPublicKey();
 				
 				// get nounce header element
 				headerElement = getHeaderElement(soapEnvelope, "nounce");
@@ -202,10 +220,19 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 				String nounce = headerElement.getValue();
 // 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
-				if(!senderName.equals("UpaBroker"))
+				if(!senderName.equals("UpaBroker")) {
+					// everyone not broker only speaks with broker
 					if(_keyManager.containsNounce("UpaBroker"+senderName+"recieved", nounce)) {
-					System.out.println("Repeated nounce.");
-					return false;
+						System.out.println(senderName + " received a repeated nounce.");
+						return false;
+					}
+// 				} else {
+//					// FIXME no idea how to distinguish transporters here
+// 					// broker receives stuff from everyone
+// 					if(_keyManager.containsNounce(senderName+"recieved", nounce)) {
+// 						System.out.println(senderName + " received a repeated nounce.");
+// 						return false;
+// 					}
 				}
 				
 				// get signature header element
@@ -216,8 +243,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 				String signature = headerElement.getValue();
 // 				System.out.println("SignatureHandler got (sender)\t\t" + signature);	
+
+				String str = senderName + nounce + getSOAPBodyAsString(smc);
+				if(!signatureIsValid(signature, str, publicKey)) {
+					System.out.println("Signature is invalid.");
+					return false;
+				}
 				
-				// FIXME verify signature
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to get SOAP header because of %s%n", e);
@@ -229,7 +261,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		
 		return true;
 	}
-
+	
 	
 	public boolean handleFault(SOAPMessageContext smc) {
 		return true;
