@@ -5,11 +5,9 @@ import javax.xml.ws.Endpoint;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import pt.upa.transporter.ws.*;
-import pt.upa.transporter.ws.TransporterPort;
 import pt.upa.transporter.ws.cli.TransporterClient;
 
 import pt.upa.broker.ws.*;
-import pt.upa.broker.ws.BrokerPort;
 import pt.upa.broker.ws.cli.BrokerClient;
 
 import java.util.List;
