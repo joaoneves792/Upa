@@ -108,35 +108,35 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		
 // outbound //
 		if (outbound) {
-		// THIS is an example on how to get your own private key and everyone else's certificates
-		// ----------------------------->
-			try {
-				//You can only get your private key when message is outbound
-				PrivateKey mykey = _keyManager.getMyPrivateKey(); 
-				
-				 //Certs you can get whenever you want
-				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1");
-				X509Certificate cert2 = _keyManager.getCertificate("UpaTransporter2");
-				X509Certificate cert3 = _keyManager.getCertificate("UpaBroker");
-				
-				//Force to refresh this certificate
-				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); 
-				
-				//Get the CA certificate (stored locally on our Keystore)
-				X509Certificate cacert = _keyManager.getCACertificate(); 
-				
-				/*Some asserts for testing...*/
-				assert null != cacert;
-				assert null != forcedRefreshCert;
-				assert null != cert1;
-				assert null != cert2;
-				assert null != cert3;
-				assert null != mykey;
-			}catch (Exception e){
-				System.out.println(e.toString());
-				System.exit(-1);
-			}
-		// <-------------------------------
+// 		// THIS is an example on how to get your own private key and everyone else's certificates
+// 		// ----------------------------->
+// 			try {
+// 				//You can only get your private key when message is outbound
+// 				PrivateKey mykey = _keyManager.getMyPrivateKey(); 
+// 				
+// 				 //Certs you can get whenever you want
+// 				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1");
+// 				X509Certificate cert2 = _keyManager.getCertificate("UpaTransporter2");
+// 				X509Certificate cert3 = _keyManager.getCertificate("UpaBroker");
+// 				
+// 				//Force to refresh this certificate
+// 				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); 
+// 				
+// 				//Get the CA certificate (stored locally on our Keystore)
+// 				X509Certificate cacert = _keyManager.getCACertificate(); 
+// 				
+// 				/*Some asserts for testing...*/
+// 				assert null != cacert;
+// 				assert null != forcedRefreshCert;
+// 				assert null != cert1;
+// 				assert null != cert2;
+// 				assert null != cert3;
+// 				assert null != mykey;
+// 			}catch (Exception e){
+// 				System.out.println(e.toString());
+// 				System.exit(-1);
+// 			}
+// 		// <-------------------------------
 			
 			// put token in request SOAP header
 			try {
@@ -201,7 +201,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				String senderName = headerElement.getValue();
 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
 				
-				// FIXME get certificate and public key
+// 				X509Certificate cert = _keyManager.getCertificate(senderName);
+				// FIXME get public key
 				
 				
 				// get signature header element
@@ -217,6 +218,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to get SOAP header because of %s%n", e);
+			} catch (Exception e){
+				System.out.println(e.toString());
+				System.exit(-1);
 			}
 			
 		}

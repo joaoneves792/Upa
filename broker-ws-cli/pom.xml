@@ -60,6 +60,21 @@
             <artifactId>ws-handlers</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+		
+	<!-- Its for the funcking tests -->		
+	<!-- Transporter -->		
+		<dependency>		
+			<groupId>pt.upa.a45</groupId>		
+			<artifactId>transporter-ws</artifactId>		
+			<version>1.0-SNAPSHOT</version>		
+		</dependency>		
+	<!-- Broker -->		
+		<dependency>		
+			<groupId>pt.upa.a45</groupId>		
+			<artifactId>broker-ws</artifactId>		
+			<version>1.0-SNAPSHOT</version>		
+		</dependency>
+		
     </dependencies>
 
     <build>
