@@ -13,62 +13,121 @@ import pt.upa.transporter.ws.TransporterService;
 
 public class TransporterClient {
 	public TransporterPortType port;
+	private Boolean _intercept = false;
+// 	private String _endpointAddress;
+
+	
+	private void setContext(TransporterPortType port, String endpointAddress) {
+		//System.out.println("Setting endpoint address ...");
+		BindingProvider bindingProvider = (BindingProvider) port;
+		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+		
+		requestContext.put("wsName", "UpaBroker");
+		
+		if(_intercept)
+			requestContext.put("intercept", "true");
+		else
+			requestContext.put("intercept", "false");
+	}
+	
 	
 	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
 			UDDINaming uddiNaming = new UDDINaming(uddiURL);
-
+			
 			//System.out.printf("Looking for '%s'%n", name);
 			String endpointAddress = uddiNaming.lookup(name);
-
+			
 			if (endpointAddress == null) {
 				//System.out.println(name + " not found!");
 				throw new TransporterClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
 			} else {
 				//System.out.printf("Found %s%n", endpointAddress);
 			}
-
+			
 			//System.out.println("Creating stub ...");
 			TransporterService service = new TransporterService();
 			this.port = service.getTransporterPort();
-
-			//System.out.println("Setting endpoint address ...");
-			BindingProvider bindingProvider = (BindingProvider) port;
-			Map<String, Object> requestContext = bindingProvider.getRequestContext();
-			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-
-			requestContext.put("wsName", "UpaBroker");
-
+			
+			setContext(port, endpointAddress);
+			
 		}catch (JAXRException e) {
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
 			ex.initCause(e);
 			throw ex;
 		}
 	}
-
+	
 	public TransporterClient(String endpointAddress) throws TransporterClientException {
 		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
-
+		
 		if (endpointAddress == null) {
 			//System.out.println("Null endpoint Address!");
 			return;
 		}
-
+		
 		//System.out.println("Creating stub ...");
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
-
-		//System.out.println("Setting endpoint address ...");
-		BindingProvider bindingProvider = (BindingProvider) port;
-		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-
-		requestContext.put("wsName", "UpaBroker");
+		
+		setContext(port, endpointAddress);
 	}
 
+	
 	public TransporterPortType getPort(){
 		return port;
+	}
+	
+	
+	
+// constructors to test signature verification //
+
+	public TransporterClient(String uddiURL, String name, Boolean intercept) throws TransporterClientException {
+		_intercept = intercept;
+		
+		try {
+			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
+			UDDINaming uddiNaming = new UDDINaming(uddiURL);
+			
+			//System.out.printf("Looking for '%s'%n", name);
+			String endpointAddress = uddiNaming.lookup(name);
+			
+			if (endpointAddress == null) {
+				//System.out.println(name + " not found!");
+				throw new TransporterClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
+			} else {
+				//System.out.printf("Found %s%n", endpointAddress);
+			}
+			
+			//System.out.println("Creating stub ...");
+			TransporterService service = new TransporterService();
+			this.port = service.getTransporterPort();
+			
+			setContext(port, endpointAddress);
+			
+		} catch (JAXRException e) {
+			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+
+	public TransporterClient(String endpointAddress, Boolean intercept) throws TransporterClientException {
+		_intercept = intercept;
+		
+		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
+		if (endpointAddress == null) {
+			//System.out.println("Null endpoint Address!");
+			return;
+		}
+		
+		//System.out.println("Creating stub ...");
+		TransporterService service = new TransporterService();
+		this.port = service.getTransporterPort();
+		
+		setContext(port, endpointAddress);
 	}
 
 }

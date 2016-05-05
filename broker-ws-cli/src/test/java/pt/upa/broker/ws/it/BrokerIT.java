@@ -96,7 +96,8 @@ public class BrokerIT {
 		tvList = _broker.listTransports();
 		assertEquals(tvList.size(), 0);
 
-		/* Cant go on, for that we would need a SignatureHandler and we cont just have a security handler running only for this test...*/
+		/* Cant go on, for that we would need a SignatureHandler
+		and we can't just have a security handler running only for this test...*/
 
 		/*_uddiNaming = new UDDINaming(UDDI_URL);
 		Collection<String> transporters = _uddiNaming.list(TRANSPORTER_NAME_PREFIX + "_");

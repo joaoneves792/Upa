@@ -1,6 +1,5 @@
 package pt.upa.ws.handler;
 
-import static javax.xml.bind.DatatypeConverter.printHexBinary;
 import java.security.SecureRandom;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -14,6 +13,12 @@ import java.security.GeneralSecurityException;
 import java.util.Iterator;
 import java.util.Set;
 
+import java.io.StringWriter;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import static javax.xml.bind.DatatypeConverter.printHexBinary;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPElement;
@@ -25,14 +30,7 @@ import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
-import javax.xml.bind.DatatypeConverter;
 
-
-
-import java.io.StringWriter;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
@@ -114,6 +112,18 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		}
 	}
 
+	private String corruptSignature(String signature) {
+		char[] charArray = signature.toCharArray();
+		
+		// assuming signature has at least 2 characters
+		char temp = charArray[0];
+		charArray[0] = charArray[1];
+		charArray[1] = temp;
+		
+		return new String(charArray);
+	}
+	
+	
 	
 	public boolean handleMessage(SOAPMessageContext smc) {
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
@@ -173,7 +183,15 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				final String nounce = getSecureRandom(senderName);
 				addHeaderElement(soapEnvelope, "nounce", nounce);
 				
-				final String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
+				// should be final, but can't because of the signature tests 
+				String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
+				
+				if("true".equals((String)smc.get("intercept"))) {
+// 					System.out.println("\n\n HACKERZ \n" + signature);
+					signature = corruptSignature(signature);
+// 					System.out.println("\n" + signature+ "\n\n");
+				}
+				
 				addHeaderElement(soapEnvelope, "signature", signature);
 				
 			} catch (SOAPException e) {
@@ -243,10 +261,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 				String signature = headerElement.getValue();
 // 				System.out.println("SignatureHandler got (sender)\t\t" + signature);	
-
+				
 				String str = senderName + nounce + getSOAPBodyAsString(smc);
 				if(!signatureIsValid(signature, str, publicKey)) {
-					System.out.println("Signature is invalid.");
+					System.out.println("Recieved invalid signature from " + senderName);
 					return false;
 				}
 				

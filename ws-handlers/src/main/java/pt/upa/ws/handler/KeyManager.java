@@ -18,7 +18,6 @@ import java.util.TreeMap;
  */
 public class KeyManager {
 
-
     private static final char[] PASSWORD = "123456".toCharArray();
     private static final String UDDI_URL = "http://localhost:9090"; /*This shouldnt be a constant, but I dont see any other way (First incoming message)*/
     private static final String CACERT_FILENAME = "cacert.pem";
