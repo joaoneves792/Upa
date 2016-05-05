@@ -88,7 +88,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		final byte[] bytes = input.getBytes();
 		
 		PrivateKey privateKey = _keyManager.getMyPrivateKey();
-		Signature sig = Signature.getInstance("SHA1WithRSA");
+		Signature sig = Signature.getInstance("SHA256withRSA");
 		
 		sig.initSign(privateKey);
 		sig.update(bytes);
@@ -103,7 +103,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		final byte[] signatureBytes = DatatypeConverter.parseHexBinary(signature);
 		final byte[] digestBytes = message.getBytes();
 		
-		Signature sig = Signature.getInstance("SHA1WithRSA");
+		Signature sig = Signature.getInstance("SHA256withRSA");
 		sig.initVerify(publicKey);
 		sig.update(digestBytes);
 		try {

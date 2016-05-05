@@ -22,19 +22,16 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 	public Set<QName> getHeaders() {
 		return null;
 	}
-
 	
 	public boolean handleMessage(SOAPMessageContext smc) {
 		printSOAP(smc);
 		return true;
 	}
-
 	
 	public boolean handleFault(SOAPMessageContext smc) {
 		printSOAP(smc);
 		return true;
 	}
-
 	
 	// nothing to clean up
 	public void close(MessageContext messageContext) { }
