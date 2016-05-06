@@ -65,10 +65,8 @@ public class TransporterPort implements TransporterPortType {
 				MessageContext mc = webServiceContext.getMessageContext();
 				mc.put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
 				mc.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
-// 				mc.put("wsNounce", "AAAAAAAAAAAA");
 				mc.put("uddiURL", _uddiURL);
 			} catch (NoSuchAlgorithmException e) {
-// 			} catch (Exception e) {
 				System.err.println("Failed to generate random: " + e.getMessage());
 			}
 		}
@@ -163,6 +161,9 @@ public class TransporterPort implements TransporterPortType {
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
+		
 		setContextForHandler();
 		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
@@ -173,6 +174,9 @@ public class TransporterPort implements TransporterPortType {
     public JobView requestJob(String origin, String destination, int price)
  			throws BadLocationFault_Exception, BadPriceFault_Exception {
 
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
+		
 		setContextForHandler();
 		// check for recognised location and working regions
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
@@ -221,6 +225,9 @@ public class TransporterPort implements TransporterPortType {
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
 
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
+		
 		setContextForHandler();
 		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
@@ -248,6 +255,9 @@ public class TransporterPort implements TransporterPortType {
 	// returns job current state
 	@Override
 	public JobView jobStatus(String id) {
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
+		
 		setContextForHandler();
 		try {
 			return getJob(id);
@@ -259,6 +269,9 @@ public class TransporterPort implements TransporterPortType {
 	// returns the list of current jobs
 	@Override
 	public List<JobView> listJobs() {
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
+		
 		setContextForHandler();
 		return _jobs;
 	}
@@ -266,6 +279,9 @@ public class TransporterPort implements TransporterPortType {
 	// clears the list of current jobs
 	@Override
 	public void clearJobs() {
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return; // or throw exception
+		
 		setContextForHandler();
 		_jobs.clear();
 		_jobCounter = 0;

@@ -7,6 +7,8 @@ import java.util.TreeMap;
 
 import javax.xml.registry.JAXRException;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceContext;
+import javax.annotation.Resource;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import pt.upa.transporter.ws.TransporterPortType;
@@ -18,13 +20,21 @@ import java.security.NoSuchAlgorithmException;
 
 public class TransporterClient {
 	public TransporterPortType port;
-	private Boolean _intercept = false;
+	private Boolean _forgeSignature = false;
+	private Boolean _dupNounce = false;
 // 	private String _endpointAddress;
 
 	// Yes, this should be in broker-ws, not here. I'm looking into it.
 	private Map<String, String> _sentNounces = new TreeMap<String, String>();
 	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
 
+	
+	@Resource
+	private WebServiceContext webServiceContext;
+
+	private String getNounceFromContext() {
+		return (String) webServiceContext.getMessageContext().get("recievedNounce");
+	}
 	
 	private void setContext(TransporterPortType port, String endpointAddress) {
 		//System.out.println("Setting endpoint address ...");
@@ -36,10 +46,15 @@ public class TransporterClient {
 			requestContext.put("wsName", "UpaBroker");
 			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
 			
-			if(_intercept)
-				requestContext.put("intercept", "true");
+			if(_forgeSignature)
+				requestContext.put("forgeSignature", "true");
 			else
-				requestContext.put("intercept", "false");
+				requestContext.put("forgeSignature", "false");
+			
+			if(_dupNounce)
+				requestContext.put("dupNounce", "true");
+			else
+				requestContext.put("dupNounce", "false");
 				
 		} catch (NoSuchAlgorithmException e) {
 			System.err.println("Failed to generate random: " + e.getMessage());
@@ -100,8 +115,10 @@ public class TransporterClient {
 	
 // constructors to test signature verification //
 
-	public TransporterClient(String uddiURL, String name, Boolean intercept) throws TransporterClientException {
-		_intercept = intercept;
+	public TransporterClient(String uddiURL, String name, Boolean forge, Boolean dup)
+																	throws TransporterClientException {		
+		_forgeSignature = forge;
+		_dupNounce = dup;
 		
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
@@ -130,8 +147,10 @@ public class TransporterClient {
 		}
 	}
 
-	public TransporterClient(String endpointAddress, Boolean intercept) throws TransporterClientException {
-		_intercept = intercept;
+	public TransporterClient(String endpointAddress, Boolean forge, Boolean dup)
+																	throws TransporterClientException {		
+		_forgeSignature = forge;
+		_dupNounce = dup;
 		
 		//System.out.println(TransporterClient.class.getSimpleName() + " starting...");
 		if (endpointAddress == null) {

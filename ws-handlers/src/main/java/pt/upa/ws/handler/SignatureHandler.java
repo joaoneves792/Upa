@@ -29,6 +29,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.ws.handler.MessageContext;
+import javax.xml.ws.handler.MessageContext.Scope;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
@@ -37,6 +38,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 	private KeyManager _keyManager;
 	
+	public static String DUP_NOUNCE = "B00B135B00B13SB00B135B00B13SB00B";
 	
 // functions to manage server nounces
 	public static String getSecureRandom(Map<String, String> sent) throws NoSuchAlgorithmException {
@@ -55,6 +57,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	}
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
+	
+		System.out.println("\n\n" + nounce + "\n\n");
+
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
 			return true;
@@ -194,13 +199,17 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				final String senderName = (String)smc.get("wsName");
 				addHeaderElement(soapEnvelope, "sender", senderName);
 				
-				final String nounce = (String)smc.get("wsNounce");
+				// should be final, but can't because of the nounce tests 
+				String nounce = (String)smc.get("wsNounce");
+				if("true".equals((String)smc.get("dupNounce"))) {
+					nounce = DUP_NOUNCE;
+				}
 				addHeaderElement(soapEnvelope, "nounce", nounce);
 				
 				// should be final, but can't because of the signature tests 
 				String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
 				
-				if("true".equals((String)smc.get("intercept"))) {
+				if("true".equals((String)smc.get("forgeSignature"))) {
 					signature = corruptSignature(signature);
 				}
 				addHeaderElement(soapEnvelope, "signature", signature);
@@ -249,6 +258,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				}
 				String nounce = headerElement.getValue();
 				smc.put("recievedNounce", senderName+nounce); // servers handle nounces
+				smc.setScope("recievedNounce", Scope.APPLICATION);
 // 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
 				
 				
