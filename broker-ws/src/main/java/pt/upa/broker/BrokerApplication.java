@@ -27,10 +27,11 @@ public class BrokerApplication {
 			backupMode = true;
 		}
 
+		BrokerPort port = null;
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
 		try {
-			BrokerPort port = new BrokerPort(uddiURL, backupMode);
+			port = new BrokerPort(uddiURL, backupMode);
 			endpoint = Endpoint.create(port);
 
 			// publish endpoint
@@ -52,6 +53,10 @@ public class BrokerApplication {
 			e.printStackTrace();
 
 		} finally {
+			//stop broker timer tasks
+			if (port != null)
+				port.stopTimer();
+			
 			try {
 				if (endpoint != null) {
 					// stop endpoint

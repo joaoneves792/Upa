@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Random; // DELETE ME
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.jws.WebService;
 import javax.xml.registry.JAXRException;
@@ -32,10 +35,14 @@ import pt.upa.broker.ws.cli.BrokerClientException;
 )
 public class BrokerPort implements BrokerPortType {
 	private final String TRANSPORTER_COMPANY_PREFIX = "UpaTransporter";
-
+	private final int SIGNAL_TIME = 5000;
+	
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
-	
+
+	private BrokerPortType _backupServer;
+	private Timer _timer;
+	private boolean _backupMode;
 	
 	@Resource
 	private WebServiceContext webServiceContext;
@@ -46,13 +53,17 @@ public class BrokerPort implements BrokerPortType {
 	}
 
 	public BrokerPort(String uddiLocation, boolean backupMode) {
-		this(uddiLocation);
+		_uddiLocation = uddiLocation;
+		_backupMode = backupMode;
 		
-		if (backupMode)
-			System.out.println("BACKUP MODE ON");
-		else {
+		if (_backupMode) {
+			System.out.println("Running on backup mode.");
+		} else {
 			try{
-				BrokerClient client = new BrokerClient(_uddiLocation, "UpaBrokerBackup");
+				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup").getPort();
+				propagateState("Hi.");
+				_timer = new Timer();
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME, SIGNAL_TIME);
 				System.out.println("Backup Server found!");
 			} catch (BrokerClientException e) {
 				System.out.println("Backup Server not found!");
@@ -67,6 +78,62 @@ public class BrokerPort implements BrokerPortType {
 // 			webServiceContext.getMessageContext().put("uddiURL", _uddiLocation);
 // 		}
 // 	}
+	
+	
+	// backup related methods
+	
+	private class sendSignalTask extends TimerTask {
+		@Override
+		public void run() {
+			_backupServer.updateState(randomSignal()); // FIXME
+		}
+	}
+	
+	private class declareServerDeadTask extends TimerTask {
+		@Override
+		public void run() {
+			System.out.println("It looks like that guy finally shut up. Time to take over!");
+		}
+	}
+	
+	public void stopTimer(){
+		if (_timer != null)
+			_timer.cancel();
+	}
+	
+	// DELETE ME
+	private String randomSignal(){
+		String [] msgs = {
+			"I'm still here.",
+			"Missed me?",
+			"What time is it?",
+			"So a guy walks into a bar...",
+			"You won't get rid of me so easily.",
+			"You don't talk to much, do you?",
+			"Did you know that more than 60% of the human body is made of water?",
+			"Shhhh... did you hear that?",
+			"Can you guess what color I'm thinking of?",
+			"Oh you want to be the main server huh? Well get in line!"
+		};
+		
+		return msgs[new Random().nextInt(msgs.length)];
+	};
+	
+	private void propagateState(String msg){
+		if (_backupServer != null)
+			_backupServer.updateState(msg);
+	};
+	
+	public void updateState(String msg){
+		stopTimer();
+		
+		System.out.println("Server says: " + msg);
+		
+		_timer = new Timer();
+		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
+	};
+	
+	
 	
 	
 	// auxiliary function to get transport with given id

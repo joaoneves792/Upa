@@ -12,17 +12,24 @@
 
 <definitions
     xmlns="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
     xmlns:tns="http://ws.broker.upa.pt/"
-    targetNamespace="http://ws.broker.upa.pt/" 
+    targetNamespace="http://ws.broker.upa.pt/"
     name="BrokerWebService">
 
     <!-- Data type definitions -->
     <types>
         <xs:schema version="1.0"
             targetNamespace="http://ws.broker.upa.pt/">
+			
+            <xs:complexType name="updateState">
+                <xs:sequence>
+                    <xs:element name="msg" type="xs:string" minOccurs="0" />
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="updateState" type="tns:updateState" />
         
             <xs:complexType name="transportView">
                 <xs:sequence>
@@ -159,6 +166,10 @@
     </types>
 
     <!--  Messages (use elements defined in the schema) -->
+    <message name="updateState">
+        <part name="parameters" element="tns:updateState" />
+    </message>
+    
     <message name="ping">
         <part name="parameters" element="tns:ping" />
     </message>
@@ -212,6 +223,11 @@
 
     <!-- Port Type (Interface) -->
     <portType name="BrokerPortType">
+
+        <operation name="updateState">
+            <input wsam:Action="http://ws.broker.upa.pt/BrokerPort/updateState"
+                message="tns:updateState" />
+        </operation>
 
         <operation name="ping">
             <input wsam:Action="http://ws.broker.upa.pt/BrokerPort/pingRequest"
@@ -272,6 +288,13 @@
     <binding name="BrokerPortSoapHttpBinding" type="tns:BrokerPortType">
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http"
             style="document" />
+
+        <operation name="updateState">
+            <soap:operation soapAction="" />
+            <input>
+                <soap:body use="literal" />
+            </input>
+        </operation>
 
         <operation name="ping">
             <soap:operation soapAction="" />
