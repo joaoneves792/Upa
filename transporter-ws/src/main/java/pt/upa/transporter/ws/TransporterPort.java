@@ -8,6 +8,7 @@ import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -15,6 +16,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import pt.upa.ws.handler.SignatureHandler;
+import java.security.NoSuchAlgorithmException;
 
 
 // http://localhost:8081/transporter-ws/endpoint?wsdl
@@ -41,25 +43,37 @@ public class TransporterPort implements TransporterPortType {
 	private int _jobMaxTime;
 	private List<JobView> _jobs = new ArrayList<JobView>();
 	
+	private Map<String, String> _sentNounces = new TreeMap<String, String>();
+	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
+
 	
 	@Resource
 	private WebServiceContext webServiceContext;
 	
-// 	public void setUpHandler() {
-// 		MessageContext messageContext = webServiceContext.getMessageContext();
-// 		String propertyValue = (String) messageContext.get(SignatureHandler.REQUEST_PROPERTY);
-// 		System.out.printf("%s got token '%s' from response context%n",
-// 												SignatureHandler.class.getSimpleName(), propertyValue);
-// 		
-// 		messageContext.put(SignatureHandler.RESPONSE_PROPERTY, _id);
-// 	}
-
+	/* FIXME: insert in all wsdl functions:
+	if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+		return; // or throw exception
+	*/
+	private String getNounceFromContext() {
+		return (String) webServiceContext.getMessageContext().get("recievedNounce");
+	}
+	
+	
 	private void setContextForHandler(){
 		if(null != webServiceContext){ /*If it is null than we are running the unit tests*/
-			webServiceContext.getMessageContext().put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
-			webServiceContext.getMessageContext().put("uddiURL", _uddiURL);
+			try { 
+				MessageContext mc = webServiceContext.getMessageContext();
+				mc.put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
+				mc.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+// 				mc.put("wsNounce", "AAAAAAAAAAAA");
+				mc.put("uddiURL", _uddiURL);
+			} catch (NoSuchAlgorithmException e) {
+// 			} catch (Exception e) {
+				System.err.println("Failed to generate random: " + e.getMessage());
+			}
 		}
 	}
+	
 	
 	// private timer task definition
 	private class ChangeStateTask extends TimerTask {
@@ -257,6 +271,35 @@ public class TransporterPort implements TransporterPortType {
 		_jobCounter = 0;
 	}
 	
-	
 }
+
+// deprecated //
+
+// 	private String getSecureRandom() throws NoSuchAlgorithmException {
+// 		SecureRandom nounce;
+// 		final byte array[] = new byte[16];
+// 		String str = "";
+// 		do {
+// 			nounce = SecureRandom.getInstance("SHA1PRNG");
+// 			nounce.nextBytes(array);
+// 			str = printHexBinary(array);
+// 			
+// 		} while(_sentNounces.get(str));
+// 		
+// 		_sentNounces.put(str, str);
+// 		return str;
+// 	}
+// 
+// 	private Boolean nounceIsValid() {
+// 		Map<String, Object> receivedContext = bindingProvider.getResponseContext();
+// 		final String nounce = (String) responseContext.get("wsNounce");
+// 		
+// 		if(_receivedNounces.get(nounce) == null) {
+// 			_receivedNounces.put(nounce, nounce);
+// 			return true;
+// 		} else
+// 			return false;
+// 		
+// 		return false;
+// 	}
 

@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Map;
 
 import java.io.StringWriter;
 import javax.xml.transform.TransformerFactory;
@@ -37,6 +38,33 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	private KeyManager _keyManager;
 	
 	
+// functions to manage server nounces
+	public static String getSecureRandom(Map<String, String> sent) throws NoSuchAlgorithmException {
+		SecureRandom nounce;
+		final byte array[] = new byte[16];
+		String str = "";
+		do {
+			nounce = SecureRandom.getInstance("SHA1PRNG");
+			nounce.nextBytes(array);
+			str = printHexBinary(array);
+			
+		} while(sent.get(str) != null);
+		
+		sent.put(str, str);
+		return str;
+	}
+
+	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
+		if(received.get(nounce) == null) {
+			received.put(nounce, nounce);
+			return true;
+		} else
+			return false;
+	}
+	
+// --------------------
+	
+	
 	private void addHeaderElement(SOAPEnvelope soapEnv, String property, String value) throws SOAPException {
 		SOAPHeader soapHeader = soapEnv.getHeader();
 		Name soapNamespace = soapEnv.createName(property, "upa", "http://pt.upa.header");
@@ -55,21 +83,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return (SOAPElement) it.next();
 	}
 	
-	private String getSecureRandom(String senderName) throws NoSuchAlgorithmException {
-		SecureRandom nounce;
-		final byte array[] = new byte[16];
-		String str = "";
-		do {
-			nounce = SecureRandom.getInstance("SHA1PRNG");
-			nounce.nextBytes(array);
-			str = printHexBinary(array);
-			
-		} while(_keyManager.containsNounce(senderName+"sent", str));
-		
-		_keyManager.addNounce(senderName+"sent", str);
-		return str;
-	}
-	
+
 	// FIXME throw right exceptions
 	private String getSOAPBodyAsString(SOAPMessageContext smc) throws Exception {
 		SOAPBody element = smc.getMessage().getSOAPBody();
@@ -180,18 +194,15 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				final String senderName = (String)smc.get("wsName");
 				addHeaderElement(soapEnvelope, "sender", senderName);
 				
-				final String nounce = getSecureRandom(senderName);
+				final String nounce = (String)smc.get("wsNounce");
 				addHeaderElement(soapEnvelope, "nounce", nounce);
 				
 				// should be final, but can't because of the signature tests 
 				String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
 				
 				if("true".equals((String)smc.get("intercept"))) {
-// 					System.out.println("\n\n HACKERZ \n" + signature);
 					signature = corruptSignature(signature);
-// 					System.out.println("\n" + signature+ "\n\n");
 				}
-				
 				addHeaderElement(soapEnvelope, "signature", signature);
 				
 			} catch (SOAPException e) {
@@ -200,7 +211,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				System.out.println("Failed to create a header element: " + e.getMessage());
 				return false;
 			} catch (Exception e) {
-				// FIXME don't catch everything
+				// FIXME: don't catch everything
 				System.out.printf("\nException in handler: %s%n", e);
 			}
 			
@@ -225,10 +236,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String senderName = headerElement.getValue();
-// 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
-				
 				X509Certificate cert = _keyManager.getCertificate(senderName);
 				PublicKey publicKey = cert.getPublicKey();
+// 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
+				
 				
 				// get nounce header element
 				headerElement = getHeaderElement(soapEnvelope, "nounce");
@@ -237,21 +248,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String nounce = headerElement.getValue();
+				smc.put("recievedNounce", senderName+nounce); // servers handle nounces
 // 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
-				if(!senderName.equals("UpaBroker")) {
-					// everyone not broker only speaks with broker
-					if(_keyManager.containsNounce("UpaBroker"+senderName+"recieved", nounce)) {
-						System.out.println(senderName + " received a repeated nounce.");
-						return false;
-					}
-// 				} else {
-//					// FIXME no idea how to distinguish transporters here
-// 					// broker receives stuff from everyone
-// 					if(_keyManager.containsNounce(senderName+"recieved", nounce)) {
-// 						System.out.println(senderName + " received a repeated nounce.");
-// 						return false;
-// 					}
-				}
+				
 				
 				// get signature header element
 				headerElement = getHeaderElement(soapEnvelope, "signature");
@@ -260,14 +259,14 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String signature = headerElement.getValue();
-// 				System.out.println("SignatureHandler got (sender)\t\t" + signature);	
+// 				System.out.println("SignatureHandler got (signature)\t\t" + signature);	
+				
 				
 				String str = senderName + nounce + getSOAPBodyAsString(smc);
 				if(!signatureIsValid(signature, str, publicKey)) {
 					System.out.println("Recieved invalid signature from " + senderName);
 					return false;
 				}
-				
 				
 			} catch (SOAPException e) {
 				System.out.printf("Failed to get SOAP header because of %s%n", e);
@@ -295,3 +294,38 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 	
 }
+
+
+// deprecated //
+	
+// 	private String getSecureRandom(String senderName) throws NoSuchAlgorithmException {
+// 		SecureRandom nounce;
+// 		final byte array[] = new byte[16];
+// 		String str = "";
+// 		do {
+// 			nounce = SecureRandom.getInstance("SHA1PRNG");
+// 			nounce.nextBytes(array);
+// 			str = printHexBinary(array);
+// 			
+// 		} while(_keyManager.containsNounce(senderName+"sent", str));
+// 		
+// 		_keyManager.addNounce(senderName+"sent", str);
+// 		return str;
+// 	}
+//
+// 	if(!senderName.equals("UpaBroker")) {
+// 		// everyone not broker only speaks with broker
+// 		if(_keyManager.containsNounce("UpaBroker"+senderName+"recieved", nounce)) {
+// 			System.out.println(senderName + " received a repeated nounce.");
+// 			return false;
+// 		}
+// 	} else {
+// 		// FIXME no idea how to distinguish transporters here
+// 		// broker receives stuff from everyone
+// 		if(_keyManager.containsNounce(senderName+"recieved", nounce)) {
+// 			System.out.println(senderName + " received a repeated nounce.");
+// 			return false;
+// 		}
+// 	}
+	
+

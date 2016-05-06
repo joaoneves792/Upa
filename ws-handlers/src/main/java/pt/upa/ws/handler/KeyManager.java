@@ -18,55 +18,57 @@ import java.util.TreeMap;
  */
 public class KeyManager {
 
-    private static final char[] PASSWORD = "123456".toCharArray();
-    private static final String UDDI_URL = "http://localhost:9090"; /*This shouldnt be a constant, but I dont see any other way (First incoming message)*/
-    private static final String CACERT_FILENAME = "cacert.pem";
-    private static final String CACERT = "cacert";
-    private static final String MYKEY = "mykey";
+	private static final char[] PASSWORD = "123456".toCharArray();
+	private static final String UDDI_URL = "http://localhost:9090"; /*This shouldnt be a constant, but I dont see any other way (First incoming message)*/
+	private static final String CACERT_FILENAME = "cacert.pem";
+	private static final String CACERT = "cacert";
+	private static final String MYKEY = "mykey";
 
-    private static KeyStore _ks;
-    private static CAClient _ca;
+	private static KeyStore _ks;
+	private static CAClient _ca;
 
-    private static Hashtable<String, X509Certificate> _certCache = new Hashtable<>();
+	private static Hashtable<String, X509Certificate> _certCache = new Hashtable<>();
 
-    private static KeyManager instance = null;
+	private static KeyManager instance = null;
+
+// 	private Map<String, Map<String, String>> _nounces;
+// 	private Map<String, String> _sentNounces;
+// 	private Map<String, Map<String, String>> _receivedNounces;
+
     
-    private Map<String, Map<String, String>> _nounces;
     
-    
-    
-    private void initNounceMaps() {
-		_nounces = new TreeMap<String, Map<String, String>>();
-		
-		_nounces.put("UpaTransporter1sent", new TreeMap<String, String>());
-		_nounces.put("UpaTransporter1recieved", new TreeMap<String, String>());
-		_nounces.put("UpaTransporter2sent", new TreeMap<String, String>());
-		_nounces.put("UpaTransporter2recieved", new TreeMap<String, String>());
-		_nounces.put("UpaBrokersent", new TreeMap<String, String>());
-		// broker may receive the same nounce from diferent transporters
-		_nounces.put("UpaBrokerUpaTransporter1recieved", new TreeMap<String, String>());
-		_nounces.put("UpaBrokerUpaTransporter2recieved", new TreeMap<String, String>());
-    }
-    
-    public void addNounce(String treeId, String nounce) {
-		_nounces.get(treeId).put(nounce, nounce);
-    }
-    
-    public boolean containsNounce(String treeId, String nounce) {
-		return _nounces.get(treeId).containsKey(nounce);
-    }
+//     private void initNounceMaps() {
+// 		_nounces = new TreeMap<String, Map<String, String>>();
+// 		
+// 		_nounces.put("UpaTransporter1sent", new TreeMap<String, String>());
+// 		_nounces.put("UpaTransporter1recieved", new TreeMap<String, String>());
+// 		_nounces.put("UpaTransporter2sent", new TreeMap<String, String>());
+// 		_nounces.put("UpaTransporter2recieved", new TreeMap<String, String>());
+// 		_nounces.put("UpaBrokersent", new TreeMap<String, String>());
+// 		// broker may receive the same nounce from diferent transporters
+// 		_nounces.put("UpaBrokerUpaTransporter1recieved", new TreeMap<String, String>());
+// 		_nounces.put("UpaBrokerUpaTransporter2recieved", new TreeMap<String, String>());
+//     }
+//
+//     public void addNounce(String treeId, String nounce) {
+// 		_nounces.get(treeId).put(nounce, nounce);
+//     }
+//     
+//     public boolean containsNounce(String treeId, String nounce) {
+// 		return _nounces.get(treeId).containsKey(nounce);
+//     }
     
     
 
     private KeyManager(String keystore){
         _ks = loadKeystore(keystore, PASSWORD);
         initializeCAClient();
-        initNounceMaps();
+//         initNounceMaps();
     }
 
     private KeyManager(){
         initializeCAClient();
-        initNounceMaps();
+//         initNounceMaps();
     }
 
     public static KeyManager getInstance(String keystore){
