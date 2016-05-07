@@ -50,10 +50,7 @@ public class TransporterPort implements TransporterPortType {
 	@Resource
 	private WebServiceContext webServiceContext;
 	
-	/* FIXME: insert in all wsdl functions:
-	if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-		return; // or throw exception
-	*/
+
 	private String getNounceFromContext() {
 		return (String) webServiceContext.getMessageContext().get("recievedNounce");
 	}
@@ -161,10 +158,11 @@ public class TransporterPort implements TransporterPortType {
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
+		setContextForHandler();
+		
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return null; // or throw exception
 		
-		setContextForHandler();
 		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
@@ -173,11 +171,11 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView requestJob(String origin, String destination, int price)
  			throws BadLocationFault_Exception, BadPriceFault_Exception {
-
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
 		
 		setContextForHandler();
+		
+		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+			return null; // or throw exception
 		// check for recognised location and working regions
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
 			return null;
@@ -225,10 +223,11 @@ public class TransporterPort implements TransporterPortType {
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
 
+		setContextForHandler();
+		
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return null; // or throw exception
 		
-		setContextForHandler();
 		// find job with given id (throws exception on fail)
 		JobView job = getJob(id);
 		
@@ -255,10 +254,11 @@ public class TransporterPort implements TransporterPortType {
 	// returns job current state
 	@Override
 	public JobView jobStatus(String id) {
+		setContextForHandler();
+		
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return null; // or throw exception
 		
-		setContextForHandler();
 		try {
 			return getJob(id);
 		} catch (BadJobFault_Exception e) {
@@ -269,20 +269,20 @@ public class TransporterPort implements TransporterPortType {
 	// returns the list of current jobs
 	@Override
 	public List<JobView> listJobs() {
+		setContextForHandler();
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return null; // or throw exception
 		
-		setContextForHandler();
 		return _jobs;
 	}
 	
 	// clears the list of current jobs
 	@Override
 	public void clearJobs() {
+		setContextForHandler();
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return; // or throw exception
 		
-		setContextForHandler();
 		_jobs.clear();
 		_jobCounter = 0;
 	}

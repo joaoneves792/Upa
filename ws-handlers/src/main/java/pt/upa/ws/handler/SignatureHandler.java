@@ -58,7 +58,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
 	
-		System.out.println("\n\n" + nounce + "\n\n");
+// 		System.out.println("\n\n" + nounce + "\n\n");
 
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
@@ -198,6 +198,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				
 				final String senderName = (String)smc.get("wsName");
 				addHeaderElement(soapEnvelope, "sender", senderName);
+// 				System.out.println("sender added: " + senderName);
 				
 				// should be final, but can't because of the nounce tests 
 				String nounce = (String)smc.get("wsNounce");
@@ -205,6 +206,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					nounce = DUP_NOUNCE;
 				}
 				addHeaderElement(soapEnvelope, "nounce", nounce);
+// 				System.out.println("nounce added: " + nounce);
 				
 				// should be final, but can't because of the signature tests 
 				String signature = getSignedDigest(senderName + nounce + getSOAPBodyAsString(smc));
@@ -213,8 +215,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					signature = corruptSignature(signature);
 				}
 				addHeaderElement(soapEnvelope, "signature", signature);
+// 				System.out.println("signature added: " + signature);
+				System.out.println("");
 				
-			} catch (SOAPException e) {
+				} catch (SOAPException e) {
 				System.out.printf("Failed to add SOAP header because of %s%n", e);
 			} catch (GeneralSecurityException e) {
 				System.out.println("Failed to create a header element: " + e.getMessage());
