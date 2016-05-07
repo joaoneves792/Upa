@@ -92,7 +92,21 @@ public class BrokerPort implements BrokerPortType {
 	private class declareServerDeadTask extends TimerTask {
 		@Override
 		public void run() {
-			System.out.println("It looks like that guy finally shut up. Time to take over!");
+			try{
+				System.out.println("It looks like that guy finally shut up. Time to take over!");
+				
+				UDDINaming uddiNaming = new UDDINaming(_uddiLocation);
+				String url = uddiNaming.lookup("UpaBrokerBackup");
+				
+				uddiNaming.unbind("UpaBrokerBackup");
+				System.out.println("Deleted 'UpaBrokerBackup' from UDDI");
+				
+				uddiNaming.rebind("UpaBroker", url);
+				System.out.println("Added 'UpaBroker' to UDDI");
+ 			
+			} catch (Exception e) {
+				System.out.printf("Caught exception when taking over as main server: %s%n", e);
+			}
 		}
 	}
 	
