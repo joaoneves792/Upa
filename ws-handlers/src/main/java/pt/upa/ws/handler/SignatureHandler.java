@@ -33,6 +33,14 @@ import javax.xml.ws.handler.MessageContext.Scope;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.io.File;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 
 public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
@@ -57,15 +65,29 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	}
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
-	
+		
 		System.out.println("\n\n" + nounce + "\n\n");
-
+		
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
 			return true;
 		} else
 			return false;
 	}
+	
+	private void writeNounceToFile(String path, String content) {
+		Charset charset = Charset.forName("US-ASCII");
+		String absPath = new File("").getAbsolutePath() + path;
+		
+		Path filePath = Paths.get(absPath);
+		
+		try (BufferedWriter writer = Files.newBufferedWriter(filePath, charset)) {
+			writer.write(content, 0, content.length());
+		} catch (IOException e) {
+			System.err.format("IOException: %s%n", e);
+		}
+	}
+	
 	
 // --------------------
 	
@@ -145,6 +167,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 	
 	public boolean handleMessage(SOAPMessageContext smc) {
+		
 		Boolean outbound = (Boolean) smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 		
 		/* Initialize the keystore and CA client */
@@ -265,6 +288,20 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				smc.put("recievedNounce", senderName+nounce); // servers handle nounces
 				smc.setScope("recievedNounce", Scope.APPLICATION);
 // 				System.out.println("SignatureHandler got (nounce)\t\t" + (String)smc.get("recievedNounce"));
+
+				if(!senderName.equals("UpaBroker")) {
+// 					String path = "../../../../../../../../";
+// 					path += "broker-ws/src/main/java/pt/upa/broker/ws/NonceDump.txt";
+					String path = "/NonceDump.txt";
+					writeNounceToFile(path, senderName+nounce);
+				}
+
+// 				if(!senderName.equals("UpaBroker")) {
+// 					if(_keyManager.containsNounce(senderName+nounce))
+// 						return false;
+// 					else
+// 						_keyManager.addNounce(senderName+nounce);
+// 				}
 				
 				
 				// get signature header element
@@ -307,8 +344,11 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return null;
 	}
 	
-	
 }
+
+//		mvn exec:java -Dws.port=8078 -Dws.backupMode=true
+//		mvn clean -Dmaven.test.skip=true install
+//		mvn clean -Dtest=PingIT test
 
 
 // deprecated //

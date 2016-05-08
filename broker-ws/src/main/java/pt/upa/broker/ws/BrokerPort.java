@@ -30,6 +30,14 @@ import pt.upa.broker.ws.cli.BrokerClientException;
 import pt.upa.ws.handler.SignatureHandler;
 import java.security.NoSuchAlgorithmException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.io.File;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 
 // @HandlerChain(file="/handler-chain.xml")
 @WebService(
@@ -62,6 +70,23 @@ public class BrokerPort implements BrokerPortType {
 	private String getNounceFromContext() {
 		MessageContext mc = webServiceContext.getMessageContext();
 		return (String) mc.get("recievedNounce");
+	}
+	
+
+	private String getNounceFromFile(String path) {
+		Charset charset = Charset.forName("US-ASCII");
+		String absPath = new File("").getAbsolutePath() + path;
+
+		Path filePath = Paths.get(absPath);
+		String line = null;
+
+		try (BufferedReader reader = Files.newBufferedReader(filePath, charset)) {
+			line = reader.readLine();
+			
+		} catch (IOException e) {
+			System.err.format("IOException: %s%n", e);
+		}
+		return line;
 	}
 	
 	
@@ -237,6 +262,8 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public String ping(String name) {
 		String result = name + " UpaBroker";
+		String aux = "";
+		
 		try {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
@@ -245,11 +272,13 @@ public class BrokerPort implements BrokerPortType {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
 					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
-					result = client.port.ping(result);
+					aux = client.port.ping(result);
 					
-// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 						break; // or throw exception
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						continue; // or throw exception
+					
+					result = aux;
 					
 				} catch (TransporterClientException e) {
 					result += " " + transporter + " Failed ";
@@ -307,9 +336,9 @@ public class BrokerPort implements BrokerPortType {
 				client.setContext(j.getCompanyName(), SignatureHandler.getSecureRandom(_sentNounces));
 				
 				client.getPort().decideJob(j.getJobIdentifier(), false);
-// // 				if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 				if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 					break; // or throw exception
+// 				if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+				if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+					continue; // or throw exception
 					
 			} catch (TransporterClientException | BadJobFault_Exception e) {
 				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
@@ -347,12 +376,13 @@ public class BrokerPort implements BrokerPortType {
 					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
 					
 					JobView job = client.getPort().requestJob(origin, destination, price);
-// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 						break; // or throw exception
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						continue; // or throw exception
 					
 					if (null != job)
 						availableJobs.add(job);
+						
 				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 					// we already checked for these issues, so if the transporter server
 					// doesn't like them just ignore that transporter, its their bug!
@@ -379,9 +409,9 @@ public class BrokerPort implements BrokerPortType {
 			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
 			
 			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
-// // 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 				return; // or throw exception
+// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+				return; // or throw exception
 			
 			if(null != job && job.getJobState() == JobStateView.ACCEPTED)
 				transport.setState(TransportStateView.BOOKED);
@@ -406,9 +436,9 @@ public class BrokerPort implements BrokerPortType {
 			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
 					
 			job = client.getPort().jobStatus(transportIdToJobId(transport));
-// // 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 				return null; // or throw exception
+// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+				return null; // or throw exception
 			
 		} catch (TransporterClientException e) {
 			// if unable to connect to transporter return job as it is
@@ -451,9 +481,9 @@ public class BrokerPort implements BrokerPortType {
 					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
 					
 					client.getPort().clearJobs();
-// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 						break; // or throw exception
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						continue; // or throw exception
 						
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...

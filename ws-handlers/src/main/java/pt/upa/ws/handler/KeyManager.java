@@ -31,32 +31,19 @@ public class KeyManager {
 
 	private static KeyManager instance = null;
 
-// 	private Map<String, Map<String, String>> _nounces;
-// 	private Map<String, String> _sentNounces;
-// 	private Map<String, Map<String, String>> _receivedNounces;
+
+
+	private Map<String, String> _brokerRecievedNonces = new TreeMap<String, String>();
 
     
+
+    public void addNounce(String nounce) {
+		_brokerRecievedNonces.put(nounce, nounce);
+    }
     
-//     private void initNounceMaps() {
-// 		_nounces = new TreeMap<String, Map<String, String>>();
-// 		
-// 		_nounces.put("UpaTransporter1sent", new TreeMap<String, String>());
-// 		_nounces.put("UpaTransporter1recieved", new TreeMap<String, String>());
-// 		_nounces.put("UpaTransporter2sent", new TreeMap<String, String>());
-// 		_nounces.put("UpaTransporter2recieved", new TreeMap<String, String>());
-// 		_nounces.put("UpaBrokersent", new TreeMap<String, String>());
-// 		// broker may receive the same nounce from diferent transporters
-// 		_nounces.put("UpaBrokerUpaTransporter1recieved", new TreeMap<String, String>());
-// 		_nounces.put("UpaBrokerUpaTransporter2recieved", new TreeMap<String, String>());
-//     }
-//
-//     public void addNounce(String treeId, String nounce) {
-// 		_nounces.get(treeId).put(nounce, nounce);
-//     }
-//     
-//     public boolean containsNounce(String treeId, String nounce) {
-// 		return _nounces.get(treeId).containsKey(nounce);
-//     }
+    public boolean containsNounce(String nounce) {
+		return _brokerRecievedNonces.containsKey(nounce);
+    }
     
     
 
