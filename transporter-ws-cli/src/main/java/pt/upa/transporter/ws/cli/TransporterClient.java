@@ -59,33 +59,7 @@ public class TransporterClient {
 				requestContext.put("dupNounce", "false");
 			
 	}
-	
-	
-// 	private void setContext(TransporterPortType port, String endpointAddress) {
-// 		//System.out.println("Setting endpoint address ...");
-// 		BindingProvider bindingProvider = (BindingProvider) port;
-// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 		
-// 		try { 
-// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-// 			requestContext.put("wsName", "UpaBroker");
-// 			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
-// 			
-// 			if(_forgeSignature)
-// 				requestContext.put("forgeSignature", "true");
-// 			else
-// 				requestContext.put("forgeSignature", "false");
-// 			
-// 			if(_dupNounce)
-// 				requestContext.put("dupNounce", "true");
-// 			else
-// 				requestContext.put("dupNounce", "false");
-// 				
-// 		} catch (NoSuchAlgorithmException e) {
-// 			System.err.println("Failed to generate random: " + e.getMessage());
-// 		}
-// 	}
-	
+
 	
 	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
 		try {
@@ -196,3 +170,34 @@ public class TransporterClient {
 	}
 
 }
+
+
+	
+// 	private void setContext(TransporterPortType port, String endpointAddress) {
+// 		//System.out.println("Setting endpoint address ...");
+// 		BindingProvider bindingProvider = (BindingProvider) port;
+// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+// 		
+// 		try { 
+// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+// 			requestContext.put("wsName", "UpaBroker");
+// 			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+// 			
+// 			if(_forgeSignature)
+// 				requestContext.put("forgeSignature", "true");
+// 			else
+// 				requestContext.put("forgeSignature", "false");
+// 			
+// 			if(_dupNounce)
+// 				requestContext.put("dupNounce", "true");
+// 			else
+// 				requestContext.put("dupNounce", "false");
+// 				
+// 		} catch (NoSuchAlgorithmException e) {
+// 			System.err.println("Failed to generate random: " + e.getMessage());
+// 		}
+// 	}
+	
+	
+	
+	

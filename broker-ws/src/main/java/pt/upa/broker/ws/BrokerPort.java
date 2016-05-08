@@ -1,6 +1,6 @@
 package pt.upa.broker.ws;
 
-import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
+// import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,7 +10,9 @@ import java.util.TreeMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.annotation.Resource;
 import javax.jws.WebService;
+import javax.jws.HandlerChain;
 import javax.xml.registry.JAXRException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceContext;
@@ -18,7 +20,6 @@ import javax.xml.ws.handler.MessageContext;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
-import javax.annotation.Resource;
 
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
@@ -30,6 +31,7 @@ import pt.upa.ws.handler.SignatureHandler;
 import java.security.NoSuchAlgorithmException;
 
 
+// @HandlerChain(file="/handler-chain.xml")
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
     wsdlLocation="broker.1_0.wsdl",
@@ -85,7 +87,7 @@ public class BrokerPort implements BrokerPortType {
 		}
 	}
 	
-	// backup related methods
+// backup related methods //
 	
 	private class sendSignalTask extends TimerTask {
 		@Override
@@ -140,6 +142,7 @@ public class BrokerPort implements BrokerPortType {
 				_transportList.add(transport);
 				System.out.println("Job " + transport.getId() + " added.");
 				break;
+				
 			case UPDATE:
 				try{
 					getTransport(transport.getId()).setState(transport.getState());
@@ -148,10 +151,12 @@ public class BrokerPort implements BrokerPortType {
 					System.out.println("Error: Job " + transport.getId() + " not found!");
 				}
 				break;
+				
 			case CLEAR:
 				_transportList.clear();
 				System.out.println("Job list cleared.");
 				break;
+				
 			case IMALIVE:
 				//System.out.println(".");
 				break;
@@ -162,6 +167,7 @@ public class BrokerPort implements BrokerPortType {
 	};
 	
 
+// auxiliary broker functions //
 
 	// auxiliary function to get transport with given id
 	private TransportView getTransport(String id)
@@ -461,32 +467,3 @@ public class BrokerPort implements BrokerPortType {
     }
 }
 
-
-// 	private void setContextForHandler(){
-// 		if(null != webServiceContext){
-// 			try {
-// 				MessageContext mc = webServiceContext.getMessageContext();
-// 				mc.put("wsName", "UpaBroker");
-// 				mc.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
-// 				mc.put("uddiURL", _uddiLocation);
-// 			} catch (NoSuchAlgorithmException e) {
-// 				System.err.println("Failed to generate random: " + e.getMessage());
-// 			}
-// 		}
-// 	}
-// 	
-// 	
-// 	private void setContextForHandler(TransporterPortType port, String endpointAddress) {
-// 		if(null != webServiceContext){
-// 			BindingProvider bindingProvider = (BindingProvider) port;
-// 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 			try {
-// 				requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-// 				requestContext.put("wsName", "UpaBroker");
-// 				requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
-// 			} catch (NoSuchAlgorithmException e) {
-// 				System.err.println("Failed to generate random: " + e.getMessage());
-// 			}
-// 		}
-// 	}
-	
