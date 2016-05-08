@@ -61,7 +61,6 @@ public class BrokerPort implements BrokerPortType {
 		} else {
 			try{
 				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup").getPort();
-				propagateState("Hi.");
 				_timer = new Timer();
 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME, SIGNAL_TIME);
 				System.out.println("Backup Server found!");
@@ -84,7 +83,7 @@ public class BrokerPort implements BrokerPortType {
 	private class sendSignalTask extends TimerTask {
 		@Override
 		public void run() {
-			propagateState(randomSignal()); // FIXME
+			propagateState(UpdateAction.IMALIVE, null); // FIXME
 		}
 	}
 	
@@ -92,7 +91,7 @@ public class BrokerPort implements BrokerPortType {
 		@Override
 		public void run() {
 			try{
-				System.out.println("It looks like that guy finally shut up. Time to take over!");
+				System.out.println("Contact with the server was lost. Taking over.");
 				
 				UDDINaming uddiNaming = new UDDINaming(_uddiLocation);
 				String url = uddiNaming.lookup("UpaBrokerBackup");
@@ -109,43 +108,47 @@ public class BrokerPort implements BrokerPortType {
 		}
 	}
 	
+	// timer needs to be explicitly stopped (since it runs on a different thread)
 	public void stopTimer(){
 		if (_timer != null)
 			_timer.cancel();
 	}
 	
-	// DELETE ME
-	private String randomSignal(){
-		String [] msgs = {
-			"I'm still here.",
-			"Missed me?",
-			"What time is it?",
-			"So a guy walks into a bar...",
-			"You won't get rid of me so easily.",
-			"You don't talk to much, do you?",
-			"Did you know that more than 60% of the human body is made of water?",
-			"Shhhh... did you hear that?",
-			"Can you guess what color I'm thinking of?",
-			"Oh you want to be the main server huh? Well get in line!"
-		};
-		
-		return msgs[new Random().nextInt(msgs.length)];
-	};
-	
-	private void propagateState(String msg){
+	private void propagateState(UpdateAction action, TransportView transport){
 		try {
 			if (_backupServer != null)
-				_backupServer.updateState(msg);
+				_backupServer.updateState(action, transport);
 		} catch (Exception e) {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
 		}
 	};
 	
-	public void updateState(String msg){
+	@Override
+	public void updateState(UpdateAction action, TransportView transport){
 		stopTimer();
 		
-		System.out.println("Server says: " + msg);
+		switch (action) {
+			case ADD:
+				_transportList.add(transport);
+				System.out.println("Job " + transport.getId() + " added.");
+				break;
+			case UPDATE:
+				try{
+					getTransport(transport.getId()).setState(transport.getState());
+					System.out.println("Job " + transport.getId() + " updated to " + transport.getState() + ".");
+				} catch (UnknownTransportFault_Exception e) {
+					System.out.println("Error: Job " + transport.getId() + " not found!");
+				}
+				break;
+			case CLEAR:
+				_transportList.clear();
+				System.out.println("Job list cleared.");
+				break;
+			case IMALIVE:
+				//System.out.println(".");
+				break;
+		}
 		
 		_timer = new Timer();
 		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
@@ -292,9 +295,9 @@ public class BrokerPort implements BrokerPortType {
 
 		TransportView transport = createBudgetedTransport(choosenJob);
 		_transportList.add(transport);
-		propagateState("I just got a new job. Hold on to it, would'ya?");
-
 		bookJob(transport);
+		
+		propagateState(UpdateAction.ADD, transport);
 
 		return transport.getId();
     }
@@ -369,7 +372,7 @@ public class BrokerPort implements BrokerPortType {
         
         if (job != null){
         	transport.setState(convertState(job.getJobState()));
-        	propagateState("About that job I told you about, it's state just changed.");
+        	propagateState(UpdateAction.UPDATE, transport);
         } else {
         	UnknownTransportFault faultInfo = new UnknownTransportFault();
 			faultInfo.setId(id);
@@ -389,7 +392,7 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public void clearTransports() {
     	_transportList.clear();
-    	propagateState("Remember all the jobs I gave you? They're trash, just forget about them.");
+    	propagateState(UpdateAction.CLEAR, null);
     	
 // 		setContextForHandler();
 		

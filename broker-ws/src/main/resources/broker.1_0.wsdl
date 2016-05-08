@@ -24,9 +24,19 @@
         <xs:schema version="1.0"
             targetNamespace="http://ws.broker.upa.pt/">
 			
+			<xs:simpleType name="updateAction">
+			    <xs:restriction base="xs:string">
+                    <xs:enumeration value="ADD" />
+                    <xs:enumeration value="UPDATE" />
+                    <xs:enumeration value="CLEAR" />
+                    <xs:enumeration value="IMALIVE" />
+                </xs:restriction>
+            </xs:simpleType>
+			
             <xs:complexType name="updateState">
                 <xs:sequence>
-                    <xs:element name="msg" type="xs:string" minOccurs="0" />
+                    <xs:element name="action" type="tns:updateAction" minOccurs="0" />
+                    <xs:element name="transport" type="tns:transportView" minOccurs="0" />
                 </xs:sequence>
             </xs:complexType>
             <xs:element name="updateState" type="tns:updateState" />
