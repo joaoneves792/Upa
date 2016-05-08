@@ -6,24 +6,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Random; // DELETE ME
+import java.util.TreeMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.jws.WebService;
 import javax.xml.registry.JAXRException;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 import javax.annotation.Resource;
-import javax.xml.ws.WebServiceContext;
 
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
 import pt.upa.transporter.ws.cli.TransporterClientException;
 import pt.upa.broker.ws.cli.BrokerClient;
 import pt.upa.broker.ws.cli.BrokerClientException;
+
+import pt.upa.ws.handler.SignatureHandler;
+import java.security.NoSuchAlgorithmException;
+
 
 @WebService(
 	endpointInterface="pt.upa.broker.ws.BrokerPortType",
@@ -44,9 +49,19 @@ public class BrokerPort implements BrokerPortType {
 	private Timer _timer;
 	private boolean _backupMode;
 	
+	
+	private Map<String, String> _sentNounces = new TreeMap<String, String>();
+	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
+	
+	
 	@Resource
 	private WebServiceContext webServiceContext;
-
+	
+	private String getNounceFromContext() {
+		MessageContext mc = webServiceContext.getMessageContext();
+		return (String) mc.get("recievedNounce");
+	}
+	
 	
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
@@ -69,14 +84,6 @@ public class BrokerPort implements BrokerPortType {
 			}
 		}
 	}
-	
-// 	private void setContextForHandler(){
-// 		if(null != webServiceContext){ // If null, then we are running the unit tests
-// 			webServiceContext.getMessageContext().put("wsName", "UpaBroker");
-// 			webServiceContext.getMessageContext().put("uddiURL", _uddiLocation);
-// 		}
-// 	}
-	
 	
 	// backup related methods
 	
@@ -217,6 +224,9 @@ public class BrokerPort implements BrokerPortType {
 		return budgetedTransport;
 	}
 	
+	
+// WSDL functions //
+	
 	// ping transporters
 	@Override
     public String ping(String name) {
@@ -228,11 +238,20 @@ public class BrokerPort implements BrokerPortType {
 			for (String transporter : transporters) {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
+					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
 					result = client.port.ping(result);
+					
+// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 						break; // or throw exception
+					
 				} catch (TransporterClientException e) {
 					result += " " + transporter + " Failed ";
+				} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 				}
 			}
+			
 		} catch(JAXRException e){
 			result += " UDDI Failed ";
 		}
@@ -243,9 +262,7 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public String requestTransport(String origin, String destination, int price)
             throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
-    	
-//     	setContextForHandler();
-    	
+    	    	
 		if(price < 0){
 			InvalidPriceFault fault = new InvalidPriceFault();
 			fault.setPrice(price);
@@ -274,31 +291,39 @@ public class BrokerPort implements BrokerPortType {
 				choosenJob = job;
 			}
 		}
-
+		
 		//Ditch all the other proposals
 		for(JobView j : availableJobs){
 			if(j.getCompanyName().equals(choosenJob.getCompanyName()) && j.getJobIdentifier().equals(choosenJob.getJobIdentifier()))
 				continue;
 			try {
 				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
+				client.setContext(j.getCompanyName(), SignatureHandler.getSecureRandom(_sentNounces));
+				
 				client.getPort().decideJob(j.getJobIdentifier(), false);
+// // 				if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 				if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 					break; // or throw exception
+					
 			} catch (TransporterClientException | BadJobFault_Exception e) {
 				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
+			} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 			}
 		}
-
+		
 		if(choosenJob.getJobPrice() > price){
 			UnavailableTransportPriceFault fault = new UnavailableTransportPriceFault();
 			fault.setBestPriceFound(choosenJob.getJobPrice());
 			throw new UnavailableTransportPriceFault_Exception("No transport found for your maximum price, lowest available is: " + choosenJob.getJobPrice(), fault);
 		}
-
+		
 		TransportView transport = createBudgetedTransport(choosenJob);
 		_transportList.add(transport);
 		bookJob(transport);
 		
 		propagateState(UpdateAction.ADD, transport);
-
+		
 		return transport.getId();
     }
 
@@ -306,25 +331,29 @@ public class BrokerPort implements BrokerPortType {
 	private List<JobView> getJobProposals(String origin, String destination, int price) throws UnavailableTransportFault_Exception {
 		List<JobView> availableJobs = new ArrayList<>();
 		
-//     	setContextForHandler();
-		
 		try{
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
-
+			
 			for(String transporter : transporters) {
 				try {
 					TransporterClient client = new TransporterClient(transporter);
-
+					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
+					
 					JobView job = client.getPort().requestJob(origin, destination, price);
+// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 						break; // or throw exception
+					
 					if (null != job)
 						availableJobs.add(job);
 				} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 					// we already checked for these issues, so if the transporter server
 					// doesn't like them just ignore that transporter, its their bug!
-// 				}catch (JAXRException e){
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
+				} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 				}
 			}
 		}catch (JAXRException e){  // connection to UDDI failed
@@ -339,17 +368,23 @@ public class BrokerPort implements BrokerPortType {
 	// confirm transport
 	private void bookJob(TransportView transport) {
 		
-// 		setContextForHandler();
-		
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
+			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
+			
 			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
+// // 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 				return; // or throw exception
+			
 			if(null != job && job.getJobState() == JobStateView.ACCEPTED)
 				transport.setState(TransportStateView.BOOKED);
 			else
 				transport.setState(TransportStateView.FAILED);
 		} catch (TransporterClientException | BadJobFault_Exception e) {
 			transport.setState(TransportStateView.FAILED);
+		} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 		}
 	}
 
@@ -357,17 +392,23 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
     
-        JobView job;
+        JobView job = null;
         TransportView transport = getTransport(id);
-        
-// 		setContextForHandler();
 		
        	try{
-			job = new TransporterClient(_uddiLocation,
-					transport.getTransporterCompany()).getPort().jobStatus(transportIdToJobId(transport));
+			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
+			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
+					
+			job = client.getPort().jobStatus(transportIdToJobId(transport));
+// // 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 				return null; // or throw exception
+			
 		} catch (TransporterClientException e) {
 			// if unable to connect to transporter return job as it is
 			return transport;
+		} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 		}
         
         if (job != null){
@@ -387,23 +428,31 @@ public class BrokerPort implements BrokerPortType {
     public List<TransportView> listTransports() {
     	return _transportList;
     }
-
+	
 	// clears the list of current transports
 	@Override
     public void clearTransports() {
     	_transportList.clear();
     	propagateState(UpdateAction.CLEAR, null);
-    	
-// 		setContextForHandler();
 		
 		try{
-			Collection<String> transporters = (new UDDINaming(_uddiLocation)).list(TRANSPORTER_COMPANY_PREFIX + "_");
-
+			UDDINaming uddi = new UDDINaming(_uddiLocation);
+			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
+			
 			for(String transporter : transporters) {
-				try{
-					(new TransporterClient(transporter)).getPort().clearJobs();
+				try {
+					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
+					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
+					
+					client.getPort().clearJobs();
+// // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
+// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 						break; // or throw exception
+						
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
+				} catch (NoSuchAlgorithmException e) {
+					System.err.println("Failed to generate random: " + e.getMessage());
 				}
 			}
 		}catch (JAXRException e){
@@ -411,3 +460,33 @@ public class BrokerPort implements BrokerPortType {
 		}
     }
 }
+
+
+// 	private void setContextForHandler(){
+// 		if(null != webServiceContext){
+// 			try {
+// 				MessageContext mc = webServiceContext.getMessageContext();
+// 				mc.put("wsName", "UpaBroker");
+// 				mc.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+// 				mc.put("uddiURL", _uddiLocation);
+// 			} catch (NoSuchAlgorithmException e) {
+// 				System.err.println("Failed to generate random: " + e.getMessage());
+// 			}
+// 		}
+// 	}
+// 	
+// 	
+// 	private void setContextForHandler(TransporterPortType port, String endpointAddress) {
+// 		if(null != webServiceContext){
+// 			BindingProvider bindingProvider = (BindingProvider) port;
+// 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
+// 			try {
+// 				requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+// 				requestContext.put("wsName", "UpaBroker");
+// 				requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+// 			} catch (NoSuchAlgorithmException e) {
+// 				System.err.println("Failed to generate random: " + e.getMessage());
+// 			}
+// 		}
+// 	}
+	

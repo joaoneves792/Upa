@@ -52,7 +52,8 @@ public class TransporterPort implements TransporterPortType {
 	
 
 	private String getNounceFromContext() {
-		return (String) webServiceContext.getMessageContext().get("recievedNounce");
+		MessageContext mc = webServiceContext.getMessageContext();
+		return (String) mc.get("recievedNounce");
 	}
 	
 	
@@ -176,6 +177,7 @@ public class TransporterPort implements TransporterPortType {
 		
 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
 			return null; // or throw exception
+			
 		// check for recognised location and working regions
 		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
 			return null;
@@ -191,7 +193,7 @@ public class TransporterPort implements TransporterPortType {
 		if(price > 100) {
 			return null;
 		}
-
+		
 		JobView job = new JobView();
 		
 		job.setCompanyName(TRANSPORTER_COMPANY_PREFIX+_id);
@@ -213,7 +215,7 @@ public class TransporterPort implements TransporterPortType {
 		} else {
 			job.setJobPrice(price+1 + (new Random()).nextInt(price));
 		}
-
+		
 		_jobs.add(job);
 		return job;
 	}

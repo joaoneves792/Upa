@@ -58,7 +58,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
 	
-// 		System.out.println("\n\n" + nounce + "\n\n");
+		System.out.println("\n\n" + nounce + "\n\n");
 
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
@@ -261,9 +261,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 					return false;
 				}
 				String nounce = headerElement.getValue();
+// 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
 				smc.put("recievedNounce", senderName+nounce); // servers handle nounces
 				smc.setScope("recievedNounce", Scope.APPLICATION);
-// 				System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
+// 				System.out.println("SignatureHandler got (nounce)\t\t" + (String)smc.get("recievedNounce"));
 				
 				
 				// get signature header element

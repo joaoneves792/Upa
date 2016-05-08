@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import javax.xml.registry.JAXRException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
 import javax.annotation.Resource;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
@@ -22,29 +23,30 @@ public class TransporterClient {
 	public TransporterPortType port;
 	private Boolean _forgeSignature = false;
 	private Boolean _dupNounce = false;
-// 	private String _endpointAddress;
+	private String _endpointAddress;
 
 	// Yes, this should be in broker-ws, not here. I'm looking into it.
-	private Map<String, String> _sentNounces = new TreeMap<String, String>();
-	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
+// 	private Map<String, String> _sentNounces = new TreeMap<String, String>();
+// 	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
 
 	
 	@Resource
 	private WebServiceContext webServiceContext;
 
-	private String getNounceFromContext() {
-		return (String) webServiceContext.getMessageContext().get("recievedNounce");
+	public String getNounceFromContext() {
+		MessageContext mc = webServiceContext.getMessageContext();
+		return (String) mc.get("recievedNounce");
 	}
 	
-	private void setContext(TransporterPortType port, String endpointAddress) {
+	public void setContext(String endpointAddress, String nounce) {
 		//System.out.println("Setting endpoint address ...");
 		BindingProvider bindingProvider = (BindingProvider) port;
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		
-		try { 
-			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
 			requestContext.put("wsName", "UpaBroker");
-			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+			requestContext.put("wsNounce", nounce);
+// 			requestContext.put("uddiURL", _uddiLocation);
 			
 			if(_forgeSignature)
 				requestContext.put("forgeSignature", "true");
@@ -55,12 +57,34 @@ public class TransporterClient {
 				requestContext.put("dupNounce", "true");
 			else
 				requestContext.put("dupNounce", "false");
-				
-		} catch (NoSuchAlgorithmException e) {
-			System.err.println("Failed to generate random: " + e.getMessage());
-		}
-		
+			
 	}
+	
+	
+// 	private void setContext(TransporterPortType port, String endpointAddress) {
+// 		//System.out.println("Setting endpoint address ...");
+// 		BindingProvider bindingProvider = (BindingProvider) port;
+// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+// 		
+// 		try { 
+// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+// 			requestContext.put("wsName", "UpaBroker");
+// 			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
+// 			
+// 			if(_forgeSignature)
+// 				requestContext.put("forgeSignature", "true");
+// 			else
+// 				requestContext.put("forgeSignature", "false");
+// 			
+// 			if(_dupNounce)
+// 				requestContext.put("dupNounce", "true");
+// 			else
+// 				requestContext.put("dupNounce", "false");
+// 				
+// 		} catch (NoSuchAlgorithmException e) {
+// 			System.err.println("Failed to generate random: " + e.getMessage());
+// 		}
+// 	}
 	
 	
 	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
@@ -76,13 +100,14 @@ public class TransporterClient {
 				throw new TransporterClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
 			} else {
 				//System.out.printf("Found %s%n", endpointAddress);
+				_endpointAddress = endpointAddress;
 			}
 			
 			//System.out.println("Creating stub ...");
 			TransporterService service = new TransporterService();
 			this.port = service.getTransporterPort();
 			
-			setContext(port, endpointAddress);
+// 			setContext(port, endpointAddress);
 			
 		}catch (JAXRException e) {
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
@@ -99,11 +124,13 @@ public class TransporterClient {
 			return;
 		}
 		
+		_endpointAddress = endpointAddress;
+				
 		//System.out.println("Creating stub ...");
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 		
-		setContext(port, endpointAddress);
+// 		setContext(port, endpointAddress);
 	}
 
 	
@@ -132,13 +159,14 @@ public class TransporterClient {
 				throw new TransporterClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
 			} else {
 				//System.out.printf("Found %s%n", endpointAddress);
+				_endpointAddress = endpointAddress;
 			}
 			
 			//System.out.println("Creating stub ...");
 			TransporterService service = new TransporterService();
 			this.port = service.getTransporterPort();
 			
-			setContext(port, endpointAddress);
+// 			setContext(port, endpointAddress);
 			
 		} catch (JAXRException e) {
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
@@ -158,11 +186,13 @@ public class TransporterClient {
 			return;
 		}
 		
+		_endpointAddress = endpointAddress;		
+		
 		//System.out.println("Creating stub ...");
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 		
-		setContext(port, endpointAddress);
+// 		setContext(port, endpointAddress);
 	}
 
 }
