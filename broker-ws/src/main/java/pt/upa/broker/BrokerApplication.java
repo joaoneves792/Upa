@@ -18,9 +18,10 @@ public class BrokerApplication {
 		}
 		
 		String uddiURL = args[0];
-		String name = args[1];
+		String wsname = args[1];
 		String url = args[2];
 		boolean backupMode = false;
+		String name = wsname;
 		
 		if (args.length >= 4 && (args[3].equals("true") || args[3].equals("True"))){
 			name = name + "Backup";
@@ -68,6 +69,11 @@ public class BrokerApplication {
 			}
 			try {
 				if (uddiNaming != null) {
+					
+					// check if backup server has taken over
+					if (backupMode && uddiNaming.lookup(name) == null)
+						name = wsname;
+					
 					// delete from UDDI
 					uddiNaming.unbind(name);
 					System.out.printf("Deleted '%s' from UDDI%n", name);

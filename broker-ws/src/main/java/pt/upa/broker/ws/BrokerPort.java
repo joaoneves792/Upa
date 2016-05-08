@@ -71,7 +71,6 @@ public class BrokerPort implements BrokerPortType {
 		}
 	}
 	
-	
 // 	private void setContextForHandler(){
 // 		if(null != webServiceContext){ // If null, then we are running the unit tests
 // 			webServiceContext.getMessageContext().put("wsName", "UpaBroker");
@@ -85,7 +84,7 @@ public class BrokerPort implements BrokerPortType {
 	private class sendSignalTask extends TimerTask {
 		@Override
 		public void run() {
-			_backupServer.updateState(randomSignal()); // FIXME
+			propagateState(randomSignal()); // FIXME
 		}
 	}
 	
@@ -134,8 +133,13 @@ public class BrokerPort implements BrokerPortType {
 	};
 	
 	private void propagateState(String msg){
-		if (_backupServer != null)
-			_backupServer.updateState(msg);
+		try {
+			if (_backupServer != null)
+				_backupServer.updateState(msg);
+		} catch (Exception e) {
+			System.out.println("Backup Server lost.");
+			_backupServer = null;
+		}
 	};
 	
 	public void updateState(String msg){
@@ -147,9 +151,8 @@ public class BrokerPort implements BrokerPortType {
 		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
 	};
 	
-	
-	
-	
+
+
 	// auxiliary function to get transport with given id
 	private TransportView getTransport(String id)
 			throws UnknownTransportFault_Exception {
@@ -196,7 +199,7 @@ public class BrokerPort implements BrokerPortType {
 			return;
 		UnknownLocationFault locationFault = new UnknownLocationFault();
 		locationFault.setLocation(location);
-		throw new UnknownLocationFault_Exception("Unrecognised location: "+ location, locationFault);
+		throw new UnknownLocationFault_Exception("Unrecognised location: " + location, locationFault);
 	}
 
 	// auxiliary function to create a transport from a job
@@ -289,6 +292,7 @@ public class BrokerPort implements BrokerPortType {
 
 		TransportView transport = createBudgetedTransport(choosenJob);
 		_transportList.add(transport);
+		propagateState("I just got a new job. Hold on to it, would'ya?");
 
 		bookJob(transport);
 
@@ -365,6 +369,7 @@ public class BrokerPort implements BrokerPortType {
         
         if (job != null){
         	transport.setState(convertState(job.getJobState()));
+        	propagateState("About that job I told you about, it's state just changed.");
         } else {
         	UnknownTransportFault faultInfo = new UnknownTransportFault();
 			faultInfo.setId(id);
@@ -384,6 +389,7 @@ public class BrokerPort implements BrokerPortType {
 	@Override
     public void clearTransports() {
     	_transportList.clear();
+    	propagateState("Remember all the jobs I gave you? They're trash, just forget about them.");
     	
 // 		setContextForHandler();
 		
@@ -401,5 +407,4 @@ public class BrokerPort implements BrokerPortType {
 			// connection to UDDI failed nothing we can do about the transporters jobs...
 		}
     }
-    
 }
