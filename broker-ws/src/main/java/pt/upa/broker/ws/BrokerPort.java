@@ -132,9 +132,15 @@ public class BrokerPort implements BrokerPortType {
 		} else {
 			try{
 				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup");
-				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
-				System.out.println("Backup Server found!");
+				if(_backupServer.getPort() != null) {
+					_timer = new Timer();
+					_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+					System.out.println("Backup Server found!");
+				} else {
+					_backupServer = null;
+					System.out.println("Backup Server not found!");
+				}
+				
 			} catch (BrokerClientException e) {
 				System.out.println("Backup Server not found!");
 			}
@@ -191,14 +197,10 @@ public class BrokerPort implements BrokerPortType {
 		try {
 			if (_backupServer != null) {
 				stopTimer();
-				
 				_backupServer.getPort().updateState(action, transport);
-				
-// 				_timer = new Timer();
-// 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 				restartTimer(new sendSignalTask(), SIGNAL_TIME);
-
 			}
+			
 		} catch (BrokerClientException e) {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
@@ -209,13 +211,8 @@ public class BrokerPort implements BrokerPortType {
 		try {
 			if (_backupServer != null) {
 				stopTimer();
-				
 				_backupServer.getPort().updateNounce(dir, nounce);
-				
-// 				_timer = new Timer();
-// 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 				restartTimer(new sendSignalTask(), SIGNAL_TIME);
-
 			}
 			
 		} catch (BrokerClientException e) {
@@ -363,7 +360,7 @@ public class BrokerPort implements BrokerPortType {
 					
 					aux = client.port.ping(result);
 					verifyNonce();
-
+					
 					result = aux;
 					
 				} catch (TransporterClientException e) {
