@@ -29,12 +29,22 @@ public class BrokerClient {
 		
 				if (endpointAddress != null) {
 					//System.out.println(name + " found!");
+					if (i > 1)
+						System.out.println("Success!");
 					break;
-				} else if (i == MAX_LOOKUPS) {
+				} 
+				
+				System.out.println("Trying to establish contact with" + name + "... " + i);				
+				if (i == MAX_LOOKUPS) {
 					//System.out.println(name + " not found!");
 					throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
 				}
-				System.out.println(i);
+
+				try {
+					Thread.sleep(1000);
+				} catch(InterruptedException ex) {
+					Thread.currentThread().interrupt();
+				}
 				i++;
 			}
 			
