@@ -12,23 +12,32 @@ import pt.upa.broker.ws.BrokerPortType;
 import pt.upa.broker.ws.BrokerService;
 
 public class BrokerClient {
+	public final int MAX_LOOKUPS = 10;
 	public BrokerPortType port;
-
+	
 	public BrokerClient(String uddiURL, String name) throws BrokerClientException {
+		String endpointAddress = null;
+		
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
 			UDDINaming uddiNaming = new UDDINaming(uddiURL);
-	
-			//System.out.printf("Looking for '%s'%n", name);
-			String endpointAddress = uddiNaming.lookup(name);
-	
-			if (endpointAddress == null) {
-				//System.out.println(name + " not found!");
-				throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
-			} else {
-				//System.out.printf("Found %s%n", endpointAddress);
+
+			int i = 1;
+			while(i <= MAX_LOOKUPS){
+				//System.out.printf("Looking for '%s'%n", name);
+				endpointAddress = uddiNaming.lookup(name);
+		
+				if (endpointAddress != null) {
+					//System.out.println(name + " found!");
+					break;
+				} else if (i == MAX_LOOKUPS) {
+					//System.out.println(name + " not found!");
+					throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
+				}
+				System.out.println(i);
+				i++;
 			}
-	
+			
 			//System.out.println("Creating stub ...");
 			BrokerService service = new BrokerService();
 			this.port = service.getBrokerPort();
