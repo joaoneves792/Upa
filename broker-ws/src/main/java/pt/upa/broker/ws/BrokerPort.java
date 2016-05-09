@@ -411,26 +411,22 @@ public class BrokerPort implements BrokerPortType {
 			}
 		}
 		
+		TransporterClient client = null;
 		//Ditch all the other proposals
-		for(JobView j : availableJobs){
-			if(j.getCompanyName().equals(choosenJob.getCompanyName()) && j.getJobIdentifier().equals(choosenJob.getJobIdentifier()))
+		for(JobView job : availableJobs){
+			if(job.getCompanyName().equals(choosenJob.getCompanyName()) && job.getJobIdentifier().equals(choosenJob.getJobIdentifier()))
 				continue;
 			try {
-				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
-				String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-				client.setContext(j.getCompanyName(), nounceToSend);
-				propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
+				client = new TransporterClient(_uddiLocation, job.getCompanyName());
+				setContextForHandler(client, job.getCompanyName());
 				
-				client.getPort().decideJob(j.getJobIdentifier(), false);
-				if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-					propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-				else
-					continue; // or throw exception
+				client.getPort().decideJob(job.getJobIdentifier(), false);
+				verifyNonce();
 					
 			} catch (TransporterClientException | BadJobFault_Exception e) {
 				//Not our fault if we cant contact them or if the id doesnt match them, just skip to the next one
-			} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+			} catch (BrokerException e) {
+				System.err.println(e.getMessage());
 			}
 		}
 		
@@ -457,18 +453,14 @@ public class BrokerPort implements BrokerPortType {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
 			
+			TransporterClient client = null;
 			for(String transporter : transporters) {
 				try {
-					TransporterClient client = new TransporterClient(transporter);
-					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-					client.setContext(transporter, nounceToSend);
-					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
-
+					client = new TransporterClient(transporter);
+					setContextForHandler(client, transporter);
+					
 					JobView job = client.getPort().requestJob(origin, destination, price);
-					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-					else
-						continue; // or throw exception
+					verifyNonce();
 					
 					if (null != job)
 						availableJobs.add(job);
@@ -478,8 +470,8 @@ public class BrokerPort implements BrokerPortType {
 					// doesn't like them just ignore that transporter, its their bug!
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
-				} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+				} catch (BrokerException e) {
+					System.err.println(e.getMessage());
 				}
 			}
 		}catch (JAXRException e){  // connection to UDDI failed
@@ -496,15 +488,10 @@ public class BrokerPort implements BrokerPortType {
 		
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
-			String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-			client.setContext(transport.getTransporterCompany(), nounceToSend);
-			propagateNounce(UpdateNounceDirection.SENT, nounceToSend);			
+			setContextForHandler(client, transport.getTransporterCompany());
 			
 			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
-			if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-				propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-			else
-				return; // or throw exception
+			verifyNonce();
 			
 			if(null != job && job.getJobState() == JobStateView.ACCEPTED)
 				transport.setState(TransportStateView.BOOKED);
@@ -512,35 +499,30 @@ public class BrokerPort implements BrokerPortType {
 				transport.setState(TransportStateView.FAILED);
 		} catch (TransporterClientException | BadJobFault_Exception e) {
 			transport.setState(TransportStateView.FAILED);
-		} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+		} catch (BrokerException e) {
+			System.err.println(e.getMessage());
 		}
 	}
 
 	// returns transport current state (updated)
 	@Override
     public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
-    
+		
         JobView job = null;
         TransportView transport = getTransport(id);
 		
        	try{
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
-			String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-			client.setContext(transport.getTransporterCompany(), nounceToSend);
-			propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
-					
+			setContextForHandler(client, transport.getTransporterCompany());
+			
 			job = client.getPort().jobStatus(transportIdToJobId(transport));
-			if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-				propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-			else
-				return null; // or throw exception
+			verifyNonce();
 			
 		} catch (TransporterClientException e) {
 			// if unable to connect to transporter return job as it is
 			return transport;
-		} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+		} catch (BrokerException e) {
+			System.err.println(e.getMessage());
 		}
         
         if (job != null){
@@ -571,23 +553,19 @@ public class BrokerPort implements BrokerPortType {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
 			
+			TransporterClient client = null;
 			for(String transporter : transporters) {
 				try {
-					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
-					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-					client.setContext(transporter, nounceToSend);
-					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
+					client = new TransporterClient(_uddiLocation, transporter);
+					setContextForHandler(client, transporter);
 					
 					client.getPort().clearJobs();
-					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-					else
-						continue; // or throw exception
+					verifyNonce();
 						
 				} catch (TransporterClientException e) {
 					// nothing we can do here, just move on to the next transporter...
-				} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+				} catch (BrokerException e) {
+					System.err.println(e.getMessage());
 				}
 			}
 		}catch (JAXRException e){

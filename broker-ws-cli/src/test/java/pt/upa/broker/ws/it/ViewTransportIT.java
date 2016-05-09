@@ -18,23 +18,25 @@ public class ViewTransportIT extends AbstractIT {
 
 	@Test
 	public void testTransportStateTransition() throws Exception {
-	  List<TransportStateView> tS = new ArrayList<>();
-
-	  tS.add(TransportStateView.HEADING);
-	  tS.add(TransportStateView.ONGOING);
-	  tS.add(TransportStateView.COMPLETED);
-
-	  String rt = CLIENT.getPort().requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
-	  TransportView vt = CLIENT.getPort().viewTransport(rt);
-	  assertEquals(vt.getState(), TransportStateView.BOOKED);
-
-	  for (int t = 0; t <= 3 * DELAY_UPPER || !tS.isEmpty(); t += TENTH_OF_SECOND) {
-	    Thread.sleep(TENTH_OF_SECOND);
-	    vt = CLIENT.getPort().viewTransport(rt);
-	    if (tS.contains(vt.getState()))
-	      tS.remove(vt.getState());
-	  }
-	  assertEquals(0, tS.size());
+		List<TransportStateView> tS = new ArrayList<>();
+		
+		tS.add(TransportStateView.HEADING);
+		tS.add(TransportStateView.ONGOING);
+		tS.add(TransportStateView.COMPLETED);
+		
+		String rt = CLIENT.getPort().requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
+		TransportView vt = CLIENT.getPort().viewTransport(rt);
+		assertEquals(vt.getState(), TransportStateView.BOOKED);
+		
+		for (int t = 0; t <= 3 * DELAY_UPPER || !tS.isEmpty(); t += TENTH_OF_SECOND) {
+			System.out.print(" " + t + "\t");
+			Thread.sleep(TENTH_OF_SECOND);
+			vt = CLIENT.getPort().viewTransport(rt);
+			if (tS.contains(vt.getState()))
+			tS.remove(vt.getState());
+		}
+		assertEquals(0, tS.size());
+		System.out.println();
 	}
 
 	@Test(expected = UnknownTransportFault_Exception.class)
