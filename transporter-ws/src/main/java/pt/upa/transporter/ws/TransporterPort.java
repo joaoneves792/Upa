@@ -70,6 +70,14 @@ public class TransporterPort implements TransporterPortType {
 		}
 	}
 	
+	private void verifyNonce() throws TransporterException {
+		if(webServiceContext != null) {
+			String nounce = getNounceFromContext();
+			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
+				throw new TransporterException("Recieved message with duplicated nonce.");
+		}
+	}
+	
 	
 	// private timer task definition
 	private class ChangeStateTask extends TimerTask {
@@ -159,15 +167,22 @@ public class TransporterPort implements TransporterPortType {
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
+		try {
 		setContextForHandler();
 		
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
+		verifyNonce();
+// 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
+// 			return null; // or throw exception
+
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
+			return null;
+		}
 		
 		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
-	@
+	
 	// returns an offer for the given job
 	@Override
     public JobView requestJob(String origin, String destination, int price)

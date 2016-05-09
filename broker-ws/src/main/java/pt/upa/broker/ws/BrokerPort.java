@@ -72,9 +72,31 @@ public class BrokerPort implements BrokerPortType {
 		return (String) mc.get("recievedNounce");
 	}
 	
+	private void setContextForHandler(TransporterClient client, String transporter) {
+		if(webServiceContext != null) {
+			try {
+				String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+				client.setContext(transporter, nounceToSend);
+				propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
+			} catch (NoSuchAlgorithmException e) {
+				System.err.println("Failed to generate random: " + e.getMessage());
+			}
+		}
+	}
+	
+	private void verifyNonce() throws BrokerException {
+		if(webServiceContext != null) {
+			String nounce = getNounceFromFile("/NonceDump.txt");
+			if(SignatureHandler.nounceIsValid(_receivedNounces, nounce))
+				propagateNounce(UpdateNounceDirection.RECIEVED, nounce);
+			else
+				throw new BrokerException("Recieved message with duplicated nonce.");
+		}
+	}
+	
 	/**
 	 *	SOAPContext gets deleted before broker has a chance to get the nonce
-	 *	the file is an alternative context sharing channel
+	 *	the text file is an alternative context sharing channel
 	 */
 	private String getNounceFromFile(String path) {
 		Charset charset = Charset.forName("US-ASCII");
@@ -93,6 +115,9 @@ public class BrokerPort implements BrokerPortType {
 	}
 	
 	
+	
+// constructors //
+
 	public BrokerPort(String uddiLocation) {
 		_uddiLocation = uddiLocation;
 	}
@@ -107,13 +132,15 @@ public class BrokerPort implements BrokerPortType {
 			try{
 				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup").getPort();
 				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME, SIGNAL_TIME);
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 				System.out.println("Backup Server found!");
 			} catch (BrokerClientException e) {
 				System.out.println("Backup Server not found!");
 			}
 		}
 	}
+	
+	
 	
 // backup related methods //
 	
@@ -153,8 +180,14 @@ public class BrokerPort implements BrokerPortType {
 	
 	private void propagateState(UpdateAction action, TransportView transport){
 		try {
-			if (_backupServer != null)
+			if (_backupServer != null) {
+				stopTimer();
+				
 				_backupServer.updateState(action, transport);
+				
+				_timer = new Timer();
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+			}
 		} catch (Exception e) {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
@@ -163,16 +196,26 @@ public class BrokerPort implements BrokerPortType {
 	
 	private void propagateNounce(UpdateNounceDirection dir, String nounce){
 		try {
-			if (_backupServer != null)
+			if (_backupServer != null) {
+				stopTimer();
+				
 				_backupServer.updateNounce(dir, nounce);
+				
+				_timer = new Timer();
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+			}
+			
 		} catch (Exception e) {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
 		}
+		
 	}
 	
 	@Override
 	public void updateNounce(UpdateNounceDirection dir, String nounce) {
+		stopTimer();
+
 		switch (dir) {
 			case SENT:
 				_sentNounces.put(nounce, nounce);
@@ -184,6 +227,9 @@ public class BrokerPort implements BrokerPortType {
 				System.out.println("recievedNounces " + nounce + " added.");
 				break;
 		}
+			
+		_timer = new Timer();
+		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
 	}
 	
 	@Override
@@ -220,6 +266,7 @@ public class BrokerPort implements BrokerPortType {
 	}
 	
 
+	
 // auxiliary broker functions //
 
 	// auxiliary function to get transport with given id
@@ -284,6 +331,7 @@ public class BrokerPort implements BrokerPortType {
 	}
 	
 	
+	
 // WSDL functions //
 	
 	// ping transporters
@@ -296,25 +344,21 @@ public class BrokerPort implements BrokerPortType {
 			UDDINaming uddi = new UDDINaming(_uddiLocation);
 			Collection<String> transporters = uddi.list(TRANSPORTER_COMPANY_PREFIX + "_");
 			
+			TransporterClient client = null;
 			for (String transporter : transporters) {
 				try{
-					TransporterClient client = new TransporterClient(transporter);
-					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
-					client.setContext(transporter, nounceToSend);
-					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
+					client = new TransporterClient(transporter);
+					setContextForHandler(client, transporter);
 					
 					aux = client.port.ping(result);
-					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
-						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-					else
-						continue; // or throw exception
-						
+					verifyNonce();
+
 					result = aux;
 					
 				} catch (TransporterClientException e) {
 					result += " " + transporter + " Failed ";
-				} catch (NoSuchAlgorithmException e) {
-					System.err.println("Failed to generate random: " + e.getMessage());
+				} catch (BrokerException e) {
+					System.err.println(e.getMessage());
 				}
 			}
 			

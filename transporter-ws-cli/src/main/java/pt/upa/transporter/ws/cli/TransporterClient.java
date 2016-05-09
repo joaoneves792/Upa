@@ -61,6 +61,11 @@ public class TransporterClient {
 	}
 
 	
+	public TransporterPortType getPort(){
+		return port;
+	}
+	
+	
 	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
@@ -107,11 +112,6 @@ public class TransporterClient {
 // 		setContext(port, endpointAddress);
 	}
 
-	
-	public TransporterPortType getPort(){
-		return port;
-	}
-	
 	
 	
 // constructors to test signature verification //
