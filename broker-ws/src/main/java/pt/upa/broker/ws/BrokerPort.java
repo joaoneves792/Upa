@@ -55,7 +55,7 @@ public class BrokerPort implements BrokerPortType {
 	private List<TransportView> _transportList = new ArrayList<>();
 	private String _uddiLocation;
 
-	private BrokerPortType _backupServer;
+	private BrokerClient _backupServer;
 	private Timer _timer;
 	private boolean _backupMode;
 	
@@ -128,11 +128,13 @@ public class BrokerPort implements BrokerPortType {
 		
 		if (_backupMode) {
 			System.out.println("Running on backup mode.");
+			_timer = new Timer();
+		
 		} else {
 			try{
-				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup").getPort();
+				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup");
 				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME, SIGNAL_TIME);
 				System.out.println("Backup Server found!");
 			} catch (BrokerClientException e) {
 				System.out.println("Backup Server not found!");
@@ -147,7 +149,7 @@ public class BrokerPort implements BrokerPortType {
 	private class sendSignalTask extends TimerTask {
 		@Override
 		public void run() {
-			propagateState(UpdateAction.IMALIVE, null); // FIXME
+			propagateState(UpdateAction.IMALIVE, null);
 		}
 	}
 	
@@ -173,6 +175,14 @@ public class BrokerPort implements BrokerPortType {
 	}
 	
 	// timer needs to be explicitly stopped (since it runs on a different thread)
+	public void restartTimer(TimerTask task, int time){
+		if (_timer != null) {
+			_timer = new Timer();
+			_timer.schedule(task, time);
+		}
+	}
+	
+	// timer needs to be explicitly stopped (since it runs on a different thread)
 	public void stopTimer(){
 		if (_timer != null)
 			_timer.cancel();
@@ -181,12 +191,12 @@ public class BrokerPort implements BrokerPortType {
 	private void propagateState(UpdateAction action, TransportView transport){
 		try {
 			if (_backupServer != null) {
-				stopTimer();
+// 				stopTimer();
 				
-				_backupServer.updateState(action, transport);
+				_backupServer.getPort().updateState(action, transport);
 				
-				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+// 				_timer = new Timer();
+// 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 			}
 		} catch (Exception e) {
 			System.out.println("Backup Server lost.");
@@ -197,17 +207,17 @@ public class BrokerPort implements BrokerPortType {
 	private void propagateNounce(UpdateNounceDirection dir, String nounce){
 		try {
 			if (_backupServer != null) {
-				stopTimer();
+// 				stopTimer();
 				
-				_backupServer.updateNounce(dir, nounce);
+				_backupServer.getPort().updateNounce(dir, nounce);
 				
-				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+// 				_timer = new Timer();
+// 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 			}
 			
 		} catch (Exception e) {
-			System.out.println("Backup Server lost.");
 			_backupServer = null;
+			System.out.println("Backup Server lost.");
 		}
 		
 	}
@@ -215,6 +225,7 @@ public class BrokerPort implements BrokerPortType {
 	@Override
 	public void updateNounce(UpdateNounceDirection dir, String nounce) {
 		stopTimer();
+		restartTimer(new declareServerDeadTask(), SIGNAL_TIME*2);
 
 		switch (dir) {
 			case SENT:
@@ -227,14 +238,13 @@ public class BrokerPort implements BrokerPortType {
 				System.out.println("recievedNounces " + nounce + " added.");
 				break;
 		}
-			
-		_timer = new Timer();
-		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
+		
 	}
 	
 	@Override
 	public void updateState(UpdateAction action, TransportView transport){
 		stopTimer();
+		restartTimer(new declareServerDeadTask(), SIGNAL_TIME*2);
 		
 		switch (action) {
 			case ADD:
@@ -261,8 +271,6 @@ public class BrokerPort implements BrokerPortType {
 				break;
 		}
 		
-		_timer = new Timer();
-		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
 	}
 	
 

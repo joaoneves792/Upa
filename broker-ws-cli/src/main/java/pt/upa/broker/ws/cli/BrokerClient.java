@@ -12,34 +12,49 @@ import pt.upa.broker.ws.BrokerPortType;
 import pt.upa.broker.ws.BrokerService;
 
 public class BrokerClient {
-	public final int MAX_LOOKUPS = 10;
-	public BrokerPortType port;
+	private final int MAX_LOOKUPS = 10;
+	private BrokerPortType _port;
 	
-	public BrokerClient(String uddiURL, String name) throws BrokerClientException {
-		String endpointAddress = null;
-		
+	String _uddiURL;
+	private UDDINaming _uddiNaming;
+	private String _name;
+	
+	
+	public BrokerClient(String uddiURL, String name) throws BrokerClientException {		
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
-			UDDINaming uddiNaming = new UDDINaming(uddiURL);
-
-			int i = 1;
-			while(i <= MAX_LOOKUPS){
-				//System.out.printf("Looking for '%s'%n", name);
-				endpointAddress = uddiNaming.lookup(name);
+			_uddiURL = uddiURL;
+			_name = name;
+			UDDINaming _uddiNaming = new UDDINaming(_uddiURL);
+			
+		} catch (JAXRException e) {
+			BrokerClientException ex = new BrokerClientException(String.format("Client failed lookup on UDDI at %s!", _uddiURL));
+			ex.initCause(e);
+			throw ex;
+		}
+	}
+	
+	public BrokerPortType getPort() throws BrokerClientException {
+		String endpointAddress = null;
+		int i = 0;
+		try {
+			while(i <= MAX_LOOKUPS) {
+				//System.out.printf("Looking for '%s'%n", _name);
+				endpointAddress = _uddiNaming.lookup(_name);
 		
 				if (endpointAddress != null) {
-					//System.out.println(name + " found!");
+					//System.out.println(_name + " found!");
 					if (i > 1)
 						System.out.println("Success!");
 					break;
 				} 
 				
-				System.out.println("Trying to establish contact with" + name + "... " + i);				
+				System.out.println("Trying to establish contact with" + _name + "... " + i);				
 				if (i == MAX_LOOKUPS) {
-					//System.out.println(name + " not found!");
-					throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", name, uddiURL));
+					//System.out.println(_name + " not found!");
+					throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", _name, _uddiURL));
 				}
-
+				
 				try {
 					Thread.sleep(1000);
 				} catch(InterruptedException ex) {
@@ -48,23 +63,22 @@ public class BrokerClient {
 				i++;
 			}
 			
-			//System.out.println("Creating stub ...");
 			BrokerService service = new BrokerService();
-			this.port = service.getBrokerPort();
-	
+			this._port = service.getBrokerPort();
+			
 			//System.out.println("Setting endpoint address ...");
-			BindingProvider bindingProvider = (BindingProvider) port;
+			BindingProvider bindingProvider = (BindingProvider) _port;
 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 			
 		} catch (JAXRException e) {
-			BrokerClientException ex = new BrokerClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
+			BrokerClientException ex = new BrokerClientException(String.format("Client failed lookup on UDDI at %s!", _uddiURL));
 			ex.initCause(e);
 			throw ex;
 		}
+		
+		return _port;
 	}
-	
-	public BrokerPortType getPort(){
-		return port;
-	}
+
 }
+

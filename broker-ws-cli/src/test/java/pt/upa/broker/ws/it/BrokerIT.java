@@ -54,7 +54,7 @@ public class BrokerIT {
 
 // members //
 	private UDDINaming _uddiNaming;
-	private BrokerPortType _broker;
+	private BrokerClient _broker;
 	
 // one-time initialization and clean-up //
     @BeforeClass
@@ -67,8 +67,8 @@ public class BrokerIT {
 // initialization and clean-up for each test //
     @Before
     public void setUp() throws Exception {
-		_broker = new BrokerClient(UDDI_URL, BROKER_NAME).getPort();
-		_broker.clearTransports();
+		_broker = new BrokerClient(UDDI_URL, BROKER_NAME);
+		_broker.getPort().clearTransports();
 	}
 
     @After
@@ -80,20 +80,20 @@ public class BrokerIT {
 
     @Test
     public void pingSuccess() {
-		String result = _broker.ping(PING_MESSAGE);
+		String result = _broker.getPort().ping(PING_MESSAGE);
         assertTrue((result.equals(PING_RESPONSE + TRANSPORTER_ONE_NAME + " " + TRANSPORTER_TWO_NAME)) || (result.equals(PING_RESPONSE + TRANSPORTER_TWO_NAME + " " + TRANSPORTER_ONE_NAME)));
     }
 
 	@Test
     public void clearTransportsSuccess() throws Exception {
-		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		_broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
 		
-		List<TransportView> tvList = _broker.listTransports();
+		List<TransportView> tvList = _broker.getPort().listTransports();
 		assertEquals(tvList.size(), 2);
 		
-		_broker.clearTransports();
-		tvList = _broker.listTransports();
+		_broker.getPort().clearTransports();
+		tvList = _broker.getPort().listTransports();
 		assertEquals(tvList.size(), 0);
 
 		/* Cant go on, for that we would need a SignatureHandler
@@ -114,35 +114,35 @@ public class BrokerIT {
     
     @Test(expected = UnavailableTransportFault_Exception.class)
     public void requestTransportNoneAvailableBadLocation() throws Exception {
-        _broker.requestTransport(NORTH_LOCATION, SOUTH_LOCATION, VALID_PRICE);
+        _broker.getPort().requestTransport(NORTH_LOCATION, SOUTH_LOCATION, VALID_PRICE);
     }
 
     
     @Test(expected = UnavailableTransportFault_Exception.class)
     public void requestTransportNoneAvailableBadPrice() throws Exception {
-        _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, OVERPRICED_PRICE);
+        _broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, OVERPRICED_PRICE);
     }
 
 	@Test(expected = InvalidPriceFault_Exception.class)
 	public void requestTransportInvalidPrice() throws Exception{
-		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, INVALID_PRICE);
+		_broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, INVALID_PRICE);
 	}
 
 	@Test(expected =UnknownLocationFault_Exception.class )
 	public void requestTransportUnknownOrigin()throws Exception{
-		_broker.requestTransport(INVALID_ORIGIN, VALID_DESTINATION,VALID_PRICE);
+		_broker.getPort().requestTransport(INVALID_ORIGIN, VALID_DESTINATION,VALID_PRICE);
 	}
 
 	@Test(expected =UnknownLocationFault_Exception.class )
 	public void requestTransportUnknownDestination()throws Exception{
-		_broker.requestTransport(VALID_ORIGIN, INVALID_DESTINATION,VALID_PRICE);
+		_broker.getPort().requestTransport(VALID_ORIGIN, INVALID_DESTINATION,VALID_PRICE);
 	}
 
 
     @Test
     public void requestTransportSuccess() throws Exception {
-		String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView tv = _broker.viewTransport(id);
+		String id = _broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView tv = _broker.getPort().viewTransport(id);
 		assertEquals(TransportStateView.BOOKED, tv.getState());
 		assertEquals(VALID_ORIGIN, tv.getOrigin());
 		assertEquals(VALID_DESTINATION, tv.getDestination());
@@ -158,8 +158,8 @@ public class BrokerIT {
 // 		List<JobView> jobList;
 // 		JobView jv;
 
-		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_ODD);
-		tvList = _broker.listTransports();
+		_broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_ODD);
+		tvList = _broker.getPort().listTransports();
 		assertEquals("Should only have one job", 1, tvList.size());
 		
 		tv = tvList.get(0);
@@ -179,8 +179,8 @@ public class BrokerIT {
 // 		assertTrue(jv.getPrice() <= VALID_PRICE_ODD);
 // 		assertEquals(JobStateView.REJECTED, jv.getState());
 		
-		_broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_EVEN);
-		tvList = _broker.listTransports();
+		_broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE_EVEN);
+		tvList = _broker.getPort().listTransports();
 		assertEquals("Should have two jobs", 2, tvList.size());
 		
 		tv = tvList.get(1);
@@ -193,8 +193,8 @@ public class BrokerIT {
 
 	@Test
 	public void viewTransportSucess() throws Exception {
-        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		TransportView t = _broker.viewTransport(id);
+        String id = _broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		TransportView t = _broker.getPort().viewTransport(id);
         assertEquals(VALID_DESTINATION, t.getDestination());
         assertEquals(VALID_ORIGIN, t.getOrigin());
         assertEquals(id.split("_")[0], t.getTransporterCompany());
@@ -205,12 +205,12 @@ public class BrokerIT {
     
 	@Test
     public void viewTransportSuccessWithTimers() throws Exception {
-        String id = _broker.requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
-		assertEquals("Returned transport state is not BOOKED", TransportStateView.BOOKED, _broker.viewTransport(id).getState());
+        String id = _broker.getPort().requestTransport(VALID_ORIGIN, VALID_DESTINATION, VALID_PRICE);
+		assertEquals("Returned transport state is not BOOKED", TransportStateView.BOOKED, _broker.getPort().viewTransport(id).getState());
 		
 		System.out.println("Testing timers...");
 		Thread.sleep(15000);
 	
-		assertEquals("Returned transport state is not COMPLETED", TransportStateView.COMPLETED, _broker.viewTransport(id).getState());
+		assertEquals("Returned transport state is not COMPLETED", TransportStateView.COMPLETED, _broker.getPort().viewTransport(id).getState());
 	}
 }

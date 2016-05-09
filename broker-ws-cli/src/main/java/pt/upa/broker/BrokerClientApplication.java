@@ -16,6 +16,6 @@ public class BrokerClientApplication {
 
 		BrokerClient client = new BrokerClient(args[0], args[1]);
 
-		System.out.println(client.port.ping("Found:"));				
+		System.out.println(client.getPort().ping("Found:"));				
 	}
 }
