@@ -72,7 +72,10 @@ public class BrokerPort implements BrokerPortType {
 		return (String) mc.get("recievedNounce");
 	}
 	
-
+	/**
+	 *	SOAPContext gets deleted before broker has a chance to get the nonce
+	 *	the file is an alternative context sharing channel
+	 */
 	private String getNounceFromFile(String path) {
 		Charset charset = Charset.forName("US-ASCII");
 		String absPath = new File("").getAbsolutePath() + path;
@@ -170,7 +173,6 @@ public class BrokerPort implements BrokerPortType {
 	
 	@Override
 	public void updateNounce(UpdateNounceDirection dir, String nounce) {
-	
 		switch (dir) {
 			case SENT:
 				_sentNounces.put(nounce, nounce);
@@ -297,12 +299,14 @@ public class BrokerPort implements BrokerPortType {
 			for (String transporter : transporters) {
 				try{
 					TransporterClient client = new TransporterClient(transporter);
-					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
-					aux = client.port.ping(result);
+					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+					client.setContext(transporter, nounceToSend);
+					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
 					
-					propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+					aux = client.port.ping(result);
+					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+					else
 						continue; // or throw exception
 						
 					result = aux;
@@ -360,11 +364,14 @@ public class BrokerPort implements BrokerPortType {
 				continue;
 			try {
 				TransporterClient client = new TransporterClient(_uddiLocation, j.getCompanyName());
-				client.setContext(j.getCompanyName(), SignatureHandler.getSecureRandom(_sentNounces));
+				String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+				client.setContext(j.getCompanyName(), nounceToSend);
+				propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
 				
 				client.getPort().decideJob(j.getJobIdentifier(), false);
-// 				if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-				if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+				if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+					propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+				else
 					continue; // or throw exception
 					
 			} catch (TransporterClientException | BadJobFault_Exception e) {
@@ -400,11 +407,14 @@ public class BrokerPort implements BrokerPortType {
 			for(String transporter : transporters) {
 				try {
 					TransporterClient client = new TransporterClient(transporter);
-					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
-					
+					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+					client.setContext(transporter, nounceToSend);
+					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
+
 					JobView job = client.getPort().requestJob(origin, destination, price);
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+					else
 						continue; // or throw exception
 					
 					if (null != job)
@@ -433,11 +443,14 @@ public class BrokerPort implements BrokerPortType {
 		
 		try {
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
-			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
+			String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+			client.setContext(transport.getTransporterCompany(), nounceToSend);
+			propagateNounce(UpdateNounceDirection.SENT, nounceToSend);			
 			
 			JobView job = client.getPort().decideJob(transportIdToJobId(transport), true);
-// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+			if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+				propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+			else
 				return; // or throw exception
 			
 			if(null != job && job.getJobState() == JobStateView.ACCEPTED)
@@ -460,11 +473,14 @@ public class BrokerPort implements BrokerPortType {
 		
        	try{
 			TransporterClient client = new TransporterClient(_uddiLocation, transport.getTransporterCompany());
-			client.setContext(transport.getTransporterCompany(), SignatureHandler.getSecureRandom(_sentNounces));
+			String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+			client.setContext(transport.getTransporterCompany(), nounceToSend);
+			propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
 					
 			job = client.getPort().jobStatus(transportIdToJobId(transport));
-// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-			if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+			if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+				propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+			else
 				return null; // or throw exception
 			
 		} catch (TransporterClientException e) {
@@ -505,11 +521,14 @@ public class BrokerPort implements BrokerPortType {
 			for(String transporter : transporters) {
 				try {
 					TransporterClient client = new TransporterClient(_uddiLocation, transporter);
-					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
+					String nounceToSend = SignatureHandler.getSecureRandom(_sentNounces);
+					client.setContext(transporter, nounceToSend);
+					propagateNounce(UpdateNounceDirection.SENT, nounceToSend);
 					
 					client.getPort().clearJobs();
-// 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
-					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+					if(SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
+						propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
+					else
 						continue; // or throw exception
 						
 				} catch (TransporterClientException e) {

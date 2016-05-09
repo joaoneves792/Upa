@@ -167,7 +167,7 @@ public class TransporterPort implements TransporterPortType {
 		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
-	
+	@
 	// returns an offer for the given job
 	@Override
     public JobView requestJob(String origin, String destination, int price)
