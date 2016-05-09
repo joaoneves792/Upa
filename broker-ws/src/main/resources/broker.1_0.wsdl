@@ -40,6 +40,21 @@
                 </xs:sequence>
             </xs:complexType>
             <xs:element name="updateState" type="tns:updateState" />
+            
+			<xs:simpleType name="updateNounceDirection">
+			    <xs:restriction base="xs:string">
+                    <xs:enumeration value="RECIEVED" />
+                    <xs:enumeration value="SENT" />
+                </xs:restriction>
+            </xs:simpleType>
+			
+			<xs:complexType name="updateNounce">
+                <xs:sequence>
+                    <xs:element name="direction" type="tns:updateNounceDirection" minOccurs="0" />
+                    <xs:element name="nounce" type="xs:string" minOccurs="0" />
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="updateNounce" type="tns:updateNounce" />
         
             <xs:complexType name="transportView">
                 <xs:sequence>
@@ -179,6 +194,10 @@
     <message name="updateState">
         <part name="parameters" element="tns:updateState" />
     </message>
+	
+	<message name="updateNounce">
+        <part name="parameters" element="tns:updateNounce" />
+    </message>
     
     <message name="ping">
         <part name="parameters" element="tns:ping" />
@@ -237,6 +256,11 @@
         <operation name="updateState">
             <input wsam:Action="http://ws.broker.upa.pt/BrokerPort/updateState"
                 message="tns:updateState" />
+        </operation>
+		
+		<operation name="updateNounce">
+            <input wsam:Action="http://ws.broker.upa.pt/BrokerPort/updateNounce"
+                message="tns:updateNounce" />
         </operation>
 
         <operation name="ping">
@@ -305,7 +329,14 @@
                 <soap:body use="literal" />
             </input>
         </operation>
-
+		
+		<operation name="updateNounce">
+            <soap:operation soapAction="" />
+            <input>
+                <soap:body use="literal" />
+            </input>
+        </operation>
+		
         <operation name="ping">
             <soap:operation soapAction="" />
             <input>

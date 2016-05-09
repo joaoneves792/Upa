@@ -156,7 +156,33 @@ public class BrokerPort implements BrokerPortType {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
 		}
-	};
+	}
+	
+	private void propagateNounce(UpdateNounceDirection dir, String nounce){
+		try {
+			if (_backupServer != null)
+				_backupServer.updateNounce(dir, nounce);
+		} catch (Exception e) {
+			System.out.println("Backup Server lost.");
+			_backupServer = null;
+		}
+	}
+	
+	@Override
+	public void updateNounce(UpdateNounceDirection dir, String nounce) {
+	
+		switch (dir) {
+			case SENT:
+				_sentNounces.put(nounce, nounce);
+				System.out.println("setNounces " + nounce + " added.");
+				break;
+				
+			case RECIEVED:
+				_receivedNounces.put(nounce, nounce);
+				System.out.println("recievedNounces " + nounce + " added.");
+				break;
+		}
+	}
 	
 	@Override
 	public void updateState(UpdateAction action, TransportView transport){
@@ -183,13 +209,13 @@ public class BrokerPort implements BrokerPortType {
 				break;
 				
 			case IMALIVE:
-				//System.out.println(".");
+				System.out.println(".");
 				break;
 		}
 		
 		_timer = new Timer();
 		_timer.schedule(new declareServerDeadTask(), SIGNAL_TIME*2);
-	};
+	}
 	
 
 // auxiliary broker functions //
@@ -274,10 +300,11 @@ public class BrokerPort implements BrokerPortType {
 					client.setContext(transporter, SignatureHandler.getSecureRandom(_sentNounces));
 					aux = client.port.ping(result);
 					
+					propagateNounce(UpdateNounceDirection.RECIEVED, getNounceFromFile("/NonceDump.txt"));
 // 					if(!SignatureHandler.nounceIsValid(_receivedNounces, client.getNounceFromContext()))
 					if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromFile("/NonceDump.txt")))
 						continue; // or throw exception
-					
+						
 					result = aux;
 					
 				} catch (TransporterClientException e) {
