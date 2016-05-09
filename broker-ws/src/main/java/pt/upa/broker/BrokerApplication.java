@@ -1,5 +1,7 @@
 package pt.upa.broker;
 
+import java.io.File;
+
 import javax.xml.ws.Endpoint;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
@@ -16,6 +18,10 @@ public class BrokerApplication {
 			System.err.printf("Usage: java %s uddiURL wsName wsURL [wsBackupMode]%n", BrokerApplication.class.getName());
 			return;
 		}
+		
+		// create dump file because broker can't access soapContext for some stupid reason
+		File file = new File("NonceDump.txt");
+		file.createNewFile();
 		
 		String uddiURL = args[0];
 		String wsname = args[1];
@@ -54,6 +60,11 @@ public class BrokerApplication {
 			e.printStackTrace();
 
 		} finally {
+			// delete dump file created before
+			// FIXME if backup goes down before nounces stop working
+			if(backupMode)
+				file.delete();
+			
 			//stop broker timer tasks
 			if (port != null)
 				port.stopTimer();
