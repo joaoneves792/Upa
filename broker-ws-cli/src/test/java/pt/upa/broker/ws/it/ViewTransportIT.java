@@ -24,13 +24,13 @@ public class ViewTransportIT extends AbstractIT {
 	  tS.add(TransportStateView.ONGOING);
 	  tS.add(TransportStateView.COMPLETED);
 
-	  String rt = PORT.requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
-	  TransportView vt = PORT.viewTransport(rt);
+	  String rt = CLIENT.getPort().requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
+	  TransportView vt = CLIENT.getPort().viewTransport(rt);
 	  assertEquals(vt.getState(), TransportStateView.BOOKED);
 
 	  for (int t = 0; t <= 3 * DELAY_UPPER || !tS.isEmpty(); t += TENTH_OF_SECOND) {
 	    Thread.sleep(TENTH_OF_SECOND);
-	    vt = PORT.viewTransport(rt);
+	    vt = CLIENT.getPort().viewTransport(rt);
 	    if (tS.contains(vt.getState()))
 	      tS.remove(vt.getState());
 	  }
@@ -39,12 +39,12 @@ public class ViewTransportIT extends AbstractIT {
 
 	@Test(expected = UnknownTransportFault_Exception.class)
 	public void testViewInvalidTransport() throws Exception {
-		PORT.viewTransport(null);
+		CLIENT.getPort().viewTransport(null);
 	}
 
 	@Test(expected = UnknownTransportFault_Exception.class)
 	public void testViewNullTransport() throws Exception {
-		PORT.viewTransport(EMPTY_STRING);
+		CLIENT.getPort().viewTransport(EMPTY_STRING);
 	}
 
 }

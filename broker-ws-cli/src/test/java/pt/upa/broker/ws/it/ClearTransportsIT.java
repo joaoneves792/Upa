@@ -16,9 +16,9 @@ public class ClearTransportsIT extends AbstractIT {
 
 	@Test(expected = UnknownTransportFault_Exception.class)
 	public void testClearTransports() throws Exception {
-		String rt = PORT.requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
-		PORT.clearTransports();
-		assertEquals(0, PORT.listTransports().size());
-		PORT.viewTransport(rt);
+		String rt = CLIENT.getPort().requestTransport(CENTER_1, SOUTH_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().clearTransports();
+		assertEquals(0, CLIENT.getPort().listTransports().size());
+		CLIENT.getPort().viewTransport(rt);
 	}
 }

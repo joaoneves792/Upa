@@ -15,8 +15,8 @@ public class PingIT extends AbstractIT {
 	// public String ping(String x)
 
 	@Test
-	public void pingTest() {
-		assertNotNull(PORT.ping("test"));
+	public void pingTest() throws Exception {
+		assertNotNull(CLIENT.getPort().ping("test"));
 	}
 
 }

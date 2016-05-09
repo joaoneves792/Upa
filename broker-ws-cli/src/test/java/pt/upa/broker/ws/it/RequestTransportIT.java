@@ -25,8 +25,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportSouthZeroPrice() throws Exception {
-		String id = PORT.requestTransport(SOUTH_1, CENTER_1, ZERO_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, ZERO_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -34,8 +34,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportCenterZeroPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, CENTER_2, ZERO_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, ZERO_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -43,8 +43,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportNorthZeroPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, NORTH_1, ZERO_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, ZERO_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -54,8 +54,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportSouthUnitaryPrice() throws Exception {
-		String id = PORT.requestTransport(SOUTH_1, CENTER_1, UNITARY_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, UNITARY_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -63,8 +63,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportCenterUnitaryPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, CENTER_2, UNITARY_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, UNITARY_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -72,8 +72,8 @@ public class RequestTransportIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testRequestTransportNorthUnitaryPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, NORTH_1, UNITARY_PRICE);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, UNITARY_PRICE);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertEquals(ZERO_PRICE, tv.getPrice().intValue());
 	}
 
@@ -84,17 +84,17 @@ public class RequestTransportIT extends AbstractIT {
 	
 	@Test(expected = UnavailableTransportFault_Exception.class)
 	public void testRequestTransportSouthAboveUpperLimitPrice() throws Exception {
-		PORT.requestTransport(SOUTH_1, CENTER_1, PRICE_UPPER_LIMIT + ODD_INCREMENT);
+		CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, PRICE_UPPER_LIMIT + ODD_INCREMENT);
 	}
 
 	@Test(expected = UnavailableTransportFault_Exception.class)
 	public void testRequestTransportCenterAboveUpperLimitPrice() throws Exception {
-		PORT.requestTransport(CENTER_1, CENTER_2, PRICE_UPPER_LIMIT + ODD_INCREMENT);
+		CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, PRICE_UPPER_LIMIT + ODD_INCREMENT);
 	}
 
 	@Test(expected = UnavailableTransportFault_Exception.class)
 	public void testRequestTransportNorthAboveUpperLimitPrice() throws Exception {
-		PORT.requestTransport(CENTER_1, NORTH_1, PRICE_UPPER_LIMIT + ODD_INCREMENT);
+		CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, PRICE_UPPER_LIMIT + ODD_INCREMENT);
 	}
 
 
@@ -114,24 +114,24 @@ public class RequestTransportIT extends AbstractIT {
 	
 	@Test
 	public void testRequestTransportSouthBelowSmallestPrice() throws Exception {
-		String id = PORT.requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		final int price = tv.getPrice().intValue();
 		assertTrue(price >= UNITARY_PRICE && price < PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test
 	public void testRequestTransportCenterBelowSmallestPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		final int price = tv.getPrice().intValue();
 		assertTrue(price >= UNITARY_PRICE && price < PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test
 	public void testRequestTransportNorthBelowSmallestPrice() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, NORTH_1, PRICE_SMALLEST_LIMIT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, PRICE_SMALLEST_LIMIT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		final int price = tv.getPrice().intValue();
 		assertTrue(price >= UNITARY_PRICE && price < PRICE_SMALLEST_LIMIT);
 	}
@@ -141,8 +141,8 @@ public class RequestTransportIT extends AbstractIT {
 
 	@Test
 	public void testRequestTransportSouthOddPriceBelowUpperLimit() throws Exception {
-		String id = PORT.requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertTrue(UNITARY_PRICE <= tv.getPrice().intValue()
 				&& tv.getPrice().intValue() < PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
 		// should also check that it is an odd transporter (e.g. UpaTransporter1)
@@ -150,13 +150,13 @@ public class RequestTransportIT extends AbstractIT {
 
 	@Test(expected = UnavailableTransportPriceFault_Exception.class)
 	public void testRequestTransportSouthEvenPriceBelowUpperLimit() throws Exception {
-		PORT.requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
+		CLIENT.getPort().requestTransport(SOUTH_1, CENTER_1, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
 	}
 
 	@Test
 	public void testRequestTransportCenterOddPriceBelowUpperLimit() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertTrue(UNITARY_PRICE <= tv.getPrice().intValue()
 				&& tv.getPrice().intValue() < PRICE_SMALLEST_LIMIT + ODD_INCREMENT);
 		// should also check that it is an odd transporter (e.g. UpaTransporter1)
@@ -164,8 +164,8 @@ public class RequestTransportIT extends AbstractIT {
 
 	@Test
 	public void testRequestTransportCenterEvenPriceBelowUpperLimit() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertTrue(UNITARY_PRICE <= tv.getPrice().intValue()
 				&& tv.getPrice().intValue() < PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
 		// should also check that it is an even transporter (e.g. UpaTransporter2)
@@ -173,13 +173,13 @@ public class RequestTransportIT extends AbstractIT {
 
 	@Test(expected = UnavailableTransportPriceFault_Exception.class)
 	public void testRequestTransportNorthOddPriceBelowUpperLimit() throws Exception {
-		PORT.requestTransport(CENTER_1, NORTH_1, (PRICE_SMALLEST_LIMIT + ODD_INCREMENT));
+		CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, (PRICE_SMALLEST_LIMIT + ODD_INCREMENT));
 	}
 
 	@Test
 	public void testRequestTransportNorthEvenPriceBelowUpperLimit() throws Exception {
-		String id = PORT.requestTransport(CENTER_1, NORTH_1, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
-		TransportView tv = PORT.viewTransport(id);
+		String id = CLIENT.getPort().requestTransport(CENTER_1, NORTH_1, PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
+		TransportView tv = CLIENT.getPort().viewTransport(id);
 		assertTrue(UNITARY_PRICE <= tv.getPrice().intValue()
 				&& tv.getPrice().intValue() < PRICE_SMALLEST_LIMIT + EVEN_INCREMENT);
 		// should also check that it is an even transporter (e.g. UpaTransporter2)
@@ -190,41 +190,41 @@ public class RequestTransportIT extends AbstractIT {
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportInvalidOrigin() throws Exception {
-		PORT.requestTransport(EMPTY_STRING, SOUTH_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(EMPTY_STRING, SOUTH_1, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportNullOrigin() throws Exception {
-		PORT.requestTransport(null, CENTER_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(null, CENTER_1, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportInvalidDestination() throws Exception {
-		PORT.requestTransport(NORTH_1, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(NORTH_1, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportNullDestination() throws Exception {
-		PORT.requestTransport(SOUTH_2, null, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(SOUTH_2, null, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportInvalidOD() throws Exception {
-		PORT.requestTransport(EMPTY_STRING, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(EMPTY_STRING, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = UnknownLocationFault_Exception.class)
 	public void testRequestTransportNullOD() throws Exception {
-		PORT.requestTransport(null, null, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(null, null, PRICE_SMALLEST_LIMIT);
 	}
 
 	@Test(expected = InvalidPriceFault_Exception.class)
 	public void testRequestTransportNegativePrice() throws Exception {
-		PORT.requestTransport(CENTER_1, CENTER_2, INVALID_PRICE);
+		CLIENT.getPort().requestTransport(CENTER_1, CENTER_2, INVALID_PRICE);
 	}
 
 	@Test(expected = UnavailableTransportFault_Exception.class)
 	public void testRequestUnavailableLocation() throws Exception {
-		PORT.requestTransport(SOUTH_1, NORTH_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestTransport(SOUTH_1, NORTH_1, PRICE_SMALLEST_LIMIT);
 	}
 }

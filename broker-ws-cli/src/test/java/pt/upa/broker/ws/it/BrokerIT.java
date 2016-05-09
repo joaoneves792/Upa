@@ -79,7 +79,7 @@ public class BrokerIT {
 // tests //
 
     @Test
-    public void pingSuccess() {
+    public void pingSuccess() throws Exception {
 		String result = _broker.getPort().ping(PING_MESSAGE);
         assertTrue((result.equals(PING_RESPONSE + TRANSPORTER_ONE_NAME + " " + TRANSPORTER_TWO_NAME)) || (result.equals(PING_RESPONSE + TRANSPORTER_TWO_NAME + " " + TRANSPORTER_ONE_NAME)));
     }

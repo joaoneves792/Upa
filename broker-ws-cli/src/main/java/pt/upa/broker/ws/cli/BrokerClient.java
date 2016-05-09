@@ -15,7 +15,7 @@ public class BrokerClient {
 	private final int MAX_LOOKUPS = 10;
 	private BrokerPortType _port;
 	
-	String _uddiURL;
+	private String _uddiURL;
 	private UDDINaming _uddiNaming;
 	private String _name;
 	
@@ -25,7 +25,7 @@ public class BrokerClient {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
 			_uddiURL = uddiURL;
 			_name = name;
-			UDDINaming _uddiNaming = new UDDINaming(_uddiURL);
+			_uddiNaming = new UDDINaming(_uddiURL);
 			
 		} catch (JAXRException e) {
 			BrokerClientException ex = new BrokerClientException(String.format("Client failed lookup on UDDI at %s!", _uddiURL));
@@ -47,7 +47,7 @@ public class BrokerClient {
 					if (i > 1)
 						System.out.println("Success!");
 					break;
-				} 
+				}
 				
 				System.out.println("Trying to establish contact with" + _name + "... " + i);				
 				if (i == MAX_LOOKUPS) {
@@ -74,6 +74,7 @@ public class BrokerClient {
 		} catch (JAXRException e) {
 			BrokerClientException ex = new BrokerClientException(String.format("Client failed lookup on UDDI at %s!", _uddiURL));
 			ex.initCause(e);
+			System.out.println(e.getMessage());
 			throw ex;
 		}
 		

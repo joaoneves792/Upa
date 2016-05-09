@@ -61,7 +61,7 @@ public class AbstractIT {
 		String wsURL = PROPS.getProperty("ws.url");
 
 		CLIENT = new BrokerClient(uddiURL, wsName);
-		PORT = CLIENT.getPort();
+// 		PORT = CLIENT.getPort();
 
 	}
 

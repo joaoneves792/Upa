@@ -20,7 +20,6 @@ import javax.xml.ws.handler.MessageContext;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
-
 import pt.upa.transporter.ws.*;
 import pt.upa.transporter.ws.cli.TransporterClient;
 import pt.upa.transporter.ws.cli.TransporterClientException;
@@ -134,7 +133,7 @@ public class BrokerPort implements BrokerPortType {
 			try{
 				_backupServer = new BrokerClient(_uddiLocation, "UpaBrokerBackup");
 				_timer = new Timer();
-				_timer.schedule(new sendSignalTask(), SIGNAL_TIME, SIGNAL_TIME);
+				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
 				System.out.println("Backup Server found!");
 			} catch (BrokerClientException e) {
 				System.out.println("Backup Server not found!");
@@ -168,7 +167,7 @@ public class BrokerPort implements BrokerPortType {
 				uddiNaming.rebind("UpaBroker", url);
 				System.out.println("Added 'UpaBroker' to UDDI");
  			
-			} catch (Exception e) {
+			} catch (JAXRException e) {
 				System.out.printf("Caught exception when taking over as main server: %s%n", e);
 			}
 		}
@@ -191,14 +190,16 @@ public class BrokerPort implements BrokerPortType {
 	private void propagateState(UpdateAction action, TransportView transport){
 		try {
 			if (_backupServer != null) {
-// 				stopTimer();
+				stopTimer();
 				
 				_backupServer.getPort().updateState(action, transport);
 				
 // 				_timer = new Timer();
 // 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+				restartTimer(new sendSignalTask(), SIGNAL_TIME);
+
 			}
-		} catch (Exception e) {
+		} catch (BrokerClientException e) {
 			System.out.println("Backup Server lost.");
 			_backupServer = null;
 		}
@@ -207,15 +208,17 @@ public class BrokerPort implements BrokerPortType {
 	private void propagateNounce(UpdateNounceDirection dir, String nounce){
 		try {
 			if (_backupServer != null) {
-// 				stopTimer();
+				stopTimer();
 				
 				_backupServer.getPort().updateNounce(dir, nounce);
 				
 // 				_timer = new Timer();
 // 				_timer.schedule(new sendSignalTask(), SIGNAL_TIME);
+				restartTimer(new sendSignalTask(), SIGNAL_TIME);
+
 			}
 			
-		} catch (Exception e) {
+		} catch (BrokerClientException e) {
 			_backupServer = null;
 			System.out.println("Backup Server lost.");
 		}
