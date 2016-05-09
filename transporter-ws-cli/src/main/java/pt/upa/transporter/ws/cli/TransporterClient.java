@@ -72,7 +72,9 @@ public class TransporterClient {
 			UDDINaming uddiNaming = new UDDINaming(uddiURL);
 			
 			//System.out.printf("Looking for '%s'%n", name);
-			String endpointAddress = uddiNaming.lookup(name);
+			String endpointAddress = null;
+			if(uddiNaming.lookupRecord(name) != null)
+				endpointAddress = uddiNaming.lookup(name);
 			
 			if (endpointAddress == null) {
 				//System.out.println(name + " not found!");

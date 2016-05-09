@@ -142,6 +142,7 @@ public class BrokerPort implements BrokerPortType {
 				}
 				
 			} catch (BrokerClientException e) {
+				_backupServer = null;
 				System.out.println("Backup Server not found!");
 			}
 		}

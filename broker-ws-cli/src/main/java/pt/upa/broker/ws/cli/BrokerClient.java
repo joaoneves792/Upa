@@ -36,12 +36,17 @@ public class BrokerClient {
 	
 	public BrokerPortType getPort() throws BrokerClientException {
 		String endpointAddress = null;
-		int i = 0;
+// 		int i = 0;
 		try {
-			while(i <= MAX_LOOKUPS) {
-				//System.out.printf("Looking for '%s'%n", _name);
-				endpointAddress = _uddiNaming.lookup(_name);
 		
+// 			while(i <= MAX_LOOKUPS) {
+			for(int i = 0; i <= MAX_LOOKUPS; i++) {
+				//System.out.printf("Looking for '%s'%n", _name);
+				if(_uddiNaming.lookupRecord(_name) == null)
+					continue;
+				
+				endpointAddress = _uddiNaming.lookupRecord(_name).getUrl();
+				
 				if (endpointAddress != null) {
 					//System.out.println(_name + " found!");
 					if (i > 1)
@@ -52,7 +57,8 @@ public class BrokerClient {
 				System.out.println("Trying to establish contact with" + _name + "... " + i);				
 				if (i == MAX_LOOKUPS) {
 					//System.out.println(_name + " not found!");
-					throw new BrokerClientException(String.format("Service with name %s not found on UDDI at %s", _name, _uddiURL));
+					throw new BrokerClientException(
+								String.format("Service with name %s not found on UDDI at %s", _name, _uddiURL));
 				}
 				
 				try {
@@ -60,7 +66,7 @@ public class BrokerClient {
 				} catch(InterruptedException ex) {
 					Thread.currentThread().interrupt();
 				}
-				i++;
+// 				i++;
 			}
 			
 			BrokerService service = new BrokerService();
@@ -76,7 +82,10 @@ public class BrokerClient {
 			ex.initCause(e);
 			System.out.println(e.getMessage());
 			throw ex;
+		} catch (RuntimeException e) {
+			throw new BrokerClientException(e.getMessage());
 		}
+
 		
 		return _port;
 	}
