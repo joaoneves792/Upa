@@ -50,11 +50,13 @@ public class KeyManager {
     private KeyManager(String keystore){
         _ks = loadKeystore(keystore, PASSWORD);
         initializeCAClient();
+        loadCACertificate();
 //         initNounceMaps();
     }
 
     private KeyManager(){
         initializeCAClient();
+        loadCACertificate();
 //         initNounceMaps();
     }
 
@@ -71,8 +73,6 @@ public class KeyManager {
 
     private static KeyStore loadKeystore(String name, char[] password){
         System.out.println("[Handler]: Loading keystore for: "+ name);
-		
-        loadCACertificate();
 		
         FileInputStream fis;
         String filename = name + ".jks";
@@ -100,25 +100,25 @@ public class KeyManager {
 
     }
 
-    public static PrivateKey getMyPrivateKey() throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException{
+    public PrivateKey getMyPrivateKey() throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException{
         KeyStore.ProtectionParameter protParam = new KeyStore.PasswordProtection(PASSWORD);
         return ((KeyStore.PrivateKeyEntry)(_ks.getEntry(MYKEY, protParam))).getPrivateKey();
     }
 
-    public static X509Certificate getCertificate(String entity)throws CAException{
+    public X509Certificate getCertificate(String entity)throws CAException{
         if(_certCache.containsKey(entity))
             return _certCache.get(entity);
 			
         return forceCertificateRefresh(entity);
     }
 
-    public static X509Certificate forceCertificateRefresh(String entity)throws CAException{
+    public X509Certificate forceCertificateRefresh(String entity)throws CAException{
         X509Certificate cert = _ca.getCertificate(entity);
         _certCache.put(entity, cert);
         return cert;
     }
 
-    public static X509Certificate getCACertificate(){
+    public X509Certificate getCACertificate(){
         return _certCache.get(CACERT);
     }
 
@@ -132,5 +132,15 @@ public class KeyManager {
             System.exit(-1);
         }
 
+    }
+
+    public void verifyCertificate(X509Certificate cert)throws CertificateException, SignatureException{
+        cert.checkValidity();
+        try {
+            cert.verify(getCACertificate().getPublicKey());
+        }catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException e){
+            System.err.println("FATAL: Can't verify the signature on a certificate: " + e.getMessage());
+            System.exit(-1);
+        }
     }
 }

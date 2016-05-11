@@ -6,6 +6,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.NoSuchAlgorithmException;
 import java.security.GeneralSecurityException;
@@ -141,7 +142,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		// message os computed localy and is a regular string
 		final byte[] signatureBytes = DatatypeConverter.parseHexBinary(signature);
 		final byte[] digestBytes = message.getBytes();
-		
+
 		Signature sig = Signature.getInstance("SHA256withRSA");
 		sig.initVerify(publicKey);
 		sig.update(digestBytes);
@@ -289,6 +290,17 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 			String senderName = headerElement.getValue();
 			X509Certificate cert = _keyManager.getCertificate(senderName);
+			try {
+				_keyManager.verifyCertificate(cert);
+			}catch (CertificateException | SignatureException e){
+				try{
+					cert = _keyManager.forceCertificateRefresh(senderName);
+					_keyManager.verifyCertificate(cert);
+				}catch (CertificateException | SignatureException ex){
+					System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
+					return false;
+				}
+			}
 			PublicKey publicKey = cert.getPublicKey();
 // 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
 
@@ -322,14 +334,25 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			
 			String str = senderName + nounce + getSOAPBodyAsString(smc);
 			if(!signatureIsValid(signature, str, publicKey)) {
-				System.out.println("Recieved invalid signature from " + senderName);
-				return false;
+				/*Refresh the certificate and try again once*/
+				cert = _keyManager.forceCertificateRefresh(senderName);
+				try{
+					_keyManager.verifyCertificate(cert);
+				}catch (CertificateException | SignatureException e){
+					System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
+					return false;
+				}
+				if(!signatureIsValid(signature, str, cert.getPublicKey())) {
+					System.out.println("Recieved invalid signature from " + senderName);
+					return false;
+				}
 			}
 			
 		} catch (SOAPException e) {
 			System.out.printf("Failed to get SOAP header because of %s%n", e);
 		} catch (Exception e){
 			System.out.println("BUG IS HERE. " + e.toString());
+			e.printStackTrace();
 			System.exit(-1);
 		}
 		
