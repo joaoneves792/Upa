@@ -48,13 +48,10 @@ public class TransporterClient {
 			
 			if(_ignoreContext) {
 				requestContext.put("wsIgnore", "true");
-				requestContext.put("wsName", "UpaBroker");
-				requestContext.put("wsNounce", Integer.toString(_nonceCounter++));
-			
-			} else {
-				requestContext.put("wsName", "UpaBroker");
-				requestContext.put("wsNounce", nounce);
 			}
+			
+			requestContext.put("wsName", "UpaBroker");
+ 			requestContext.put("wsNounce", nounce);
 			
 			if(_forgeSignature)
 				requestContext.put("forgeSignature", "true");
@@ -73,8 +70,10 @@ public class TransporterClient {
 	
 	public TransporterPortType getPort(){
 		
+		// get a diferent sequence of numbers for each test
+		// this sequence is not in hexadecimal to not conflict with the actual nonces from broker
 		if(_ignoreContext == true || _forgeSignature == true || _dupNounce == true)
-			setContext("someaddress", "somenonce");
+			setContext("someaddress", Long.toString(System.currentTimeMillis()));
 			
 		return port;
 	}

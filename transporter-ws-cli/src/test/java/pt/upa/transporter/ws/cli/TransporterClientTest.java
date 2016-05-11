@@ -16,6 +16,8 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
+import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
+
 
 /**
  * Test suite
@@ -74,7 +76,7 @@ public class TransporterClientTest {
 		new Expectations() {
 			{
 				new UDDINaming(uddiURL);
-				uddiNaming.lookup(wsName);
+				uddiNaming.lookupRecord(wsName).getUrl();
 				result = wsURL;
 			}
 		};
@@ -90,7 +92,7 @@ public class TransporterClientTest {
 				// Verifies that zero or one invocations occurred, with the
 				// specified argument value:
 				new UDDINaming(uddiURL);
-				uddiNaming.lookup(wsName);
+				uddiNaming.lookupRecord(wsName).getUrl();
 				maxTimes = 1;
 				uddiNaming.unbind(null);
 				maxTimes = 0;
@@ -125,7 +127,7 @@ public class TransporterClientTest {
 		new Expectations() {
 			{
 				new UDDINaming(uddiURL);
-				uddiNaming.lookup(wsName);
+				uddiNaming.lookupRecord(wsName).getUrl();
 				result = null;
 			}
 		};
@@ -149,7 +151,7 @@ public class TransporterClientTest {
 				// Verifies that zero or one invocations occurred, with the
 				// specified argument value:
 				new UDDINaming(uddiURL);
-				uddiNaming.lookup(wsName);
+				uddiNaming.lookupRecord(wsName).getUrl();
 				maxTimes = 1;
 			}
 		};

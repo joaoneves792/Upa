@@ -202,7 +202,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		
 	public boolean handleOutbound(SOAPMessageContext smc) {
 			
-			System.out.println("HELLO");
 		// put token in request SOAP header
 		try {
 			SOAPEnvelope soapEnvelope = smc.getMessage().getSOAPPart().getEnvelope();
@@ -211,13 +210,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			if (soapHeader == null)
 				soapHeader = soapEnvelope.addHeader();
 			
-// 			String ignore = (String)smc.get("wsIgnore");
-// 			if(ignore != null)
-// 				addHeaderElement(soapEnvelope, "wsIgnore", "true");
+			String ignore = (String)smc.get("wsIgnore");
+			if(ignore != null)
+				addHeaderElement(soapEnvelope, "wsIgnore", "true");
 			
 			final String senderName = (String)smc.get("wsName");
 			addHeaderElement(soapEnvelope, "sender", senderName);
-			System.out.println("sender added: " + senderName);
+// 			System.out.println("sender added: " + senderName);
 			
 			// should be final, but can't because of the nounce tests 
 			String nounce = (String)smc.get("wsNounce");
@@ -235,7 +234,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 			addHeaderElement(soapEnvelope, "signature", signature);
 // 			System.out.println("signature added: " + signature);
-			System.out.println("");
 			
 		} catch (SOAPException e) {
 			System.out.printf("Failed to add SOAP header because of %s%n", e);
@@ -266,20 +264,18 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 			
 			
-// 			// get ignore context flag for transporter integration tests
-// 			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
-// 			if(headerElement != null) {
+			// get ignore context flag for transporter integration tests
+			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
+			String ignore = null;
+			if(headerElement != null) {
 // 				System.out.println("Ignoring context.");
-// 				return false;
-// 			}
-// 			String ignore = headerElement.getValue();
-// // 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
-// 			if("true".equals(ignore)) {
-// 				smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
-// 				smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
-// 			}
-			
-			
+				ignore = headerElement.getValue();
+// 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);
+				if("true".equals(ignore)) {
+					smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
+					smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
+				}
+			}
 			
 			
 			// get sender header element

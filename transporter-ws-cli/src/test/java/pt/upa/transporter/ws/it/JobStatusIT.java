@@ -22,7 +22,7 @@ public class JobStatusIT extends AbstractIT {
 	 */
 	@Test
 	public void testInvalidJobStatus() {
-		assertEquals(null, PORT.jobStatus(EMPTY_STRING));
+		assertEquals(null, CLIENT.getPort().jobStatus(EMPTY_STRING));
 	}
 
 	/**
@@ -31,7 +31,7 @@ public class JobStatusIT extends AbstractIT {
 	 */
 	@Test
 	public void testNullJobStatus() throws Exception {
-		assertEquals(null, PORT.jobStatus(null));
+		assertEquals(null, CLIENT.getPort().jobStatus(null));
 	}
 
 	/**
@@ -46,15 +46,15 @@ public class JobStatusIT extends AbstractIT {
 	 */
 	@Test
 	public void testJobStatus1() throws Exception {
-		JobView jv = PORT.requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
-		JobStateView jsv = PORT.jobStatus(jv.getJobIdentifier()).getJobState();
+		JobView jv = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
+		JobStateView jsv = CLIENT.getPort().jobStatus(jv.getJobIdentifier()).getJobState();
 		assertEquals(JobStateView.PROPOSED, jsv);
 
-		jv = PORT.decideJob(jv.getJobIdentifier(), true);
+		jv = CLIENT.getPort().decideJob(jv.getJobIdentifier(), true);
 		assertEquals(JobStateView.ACCEPTED, jv.getJobState());
 
 		try {
-			PORT.decideJob(jv.getJobIdentifier(), false);
+			CLIENT.getPort().decideJob(jv.getJobIdentifier(), false);
 		} catch (BadJobFault_Exception e) {
 			// expected
 		}
@@ -68,16 +68,16 @@ public class JobStatusIT extends AbstractIT {
 	 */
 	@Test
 	public void testJobStatus2() throws Exception {
-		int initialNrJobs = PORT.listJobs().size();
+		int initialNrJobs = CLIENT.getPort().listJobs().size();
 
-		JobView jv1 = PORT.requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
-		JobView jv2 = PORT.requestJob(CENTRO_2, SUL_2, PRICE_UPPER_LIMIT - 1);
-		jv2 = PORT.decideJob(jv2.getJobIdentifier(), true);
-		assertEquals(initialNrJobs + 2, PORT.listJobs().size());
+		JobView jv1 = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
+		JobView jv2 = CLIENT.getPort().requestJob(CENTRO_2, SUL_2, PRICE_UPPER_LIMIT - 1);
+		jv2 = CLIENT.getPort().decideJob(jv2.getJobIdentifier(), true);
+		assertEquals(initialNrJobs + 2, CLIENT.getPort().listJobs().size());
 
-		JobStateView jsv1 = PORT.jobStatus(jv1.getJobIdentifier()).getJobState();
+		JobStateView jsv1 = CLIENT.getPort().jobStatus(jv1.getJobIdentifier()).getJobState();
 		assertEquals(JobStateView.PROPOSED, jsv1);
-		JobStateView jsv2 = PORT.jobStatus(jv2.getJobIdentifier()).getJobState();
+		JobStateView jsv2 = CLIENT.getPort().jobStatus(jv2.getJobIdentifier()).getJobState();
 		assertEquals(JobStateView.ACCEPTED, jsv2);
 	}
 
@@ -94,19 +94,19 @@ public class JobStatusIT extends AbstractIT {
 		jobStates.add(JobStateView.HEADING);
 		jobStates.add(JobStateView.ONGOING);
 		jobStates.add(JobStateView.COMPLETED);
-		PORT.clearJobs();
+		CLIENT.getPort().clearJobs();
 		
-		JobView jv = PORT.requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
-		JobStateView jsv1 = PORT.jobStatus(jv.getJobIdentifier()).getJobState();
+		JobView jv = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, PRICE_UPPER_LIMIT);
+		JobStateView jsv1 = CLIENT.getPort().jobStatus(jv.getJobIdentifier()).getJobState();
 		assertEquals(JobStateView.PROPOSED, jsv1);
 
-		jv = PORT.decideJob(jv.getJobIdentifier(), true);
-		JobStateView jsv2 = PORT.jobStatus(jv.getJobIdentifier()).getJobState();
+		jv = CLIENT.getPort().decideJob(jv.getJobIdentifier(), true);
+		JobStateView jsv2 = CLIENT.getPort().jobStatus(jv.getJobIdentifier()).getJobState();
 		assertEquals(JobStateView.ACCEPTED, jsv2);
 
 		for (int t = 1; t <= 15; t++) {
 			Thread.sleep(DELAY_LOWER);
-			jv = PORT.jobStatus(jv.getJobIdentifier());
+			jv = CLIENT.getPort().jobStatus(jv.getJobIdentifier());
 			if (jobStates.contains(jv.getJobState()))
 				jobStates.remove(jv.getJobState());
 		}

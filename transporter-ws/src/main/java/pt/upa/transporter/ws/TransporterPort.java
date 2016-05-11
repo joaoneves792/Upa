@@ -63,7 +63,8 @@ public class TransporterPort implements TransporterPortType {
 	
 	
 	private void setContextForHandler(){
-		if(webServiceContext != null && !"true".equals(getIgnoreFlagFromContext())) {
+// 		if(webServiceContext != null && !"true".equals(getIgnoreFlagFromContext())) {
+		if(webServiceContext != null) {
 			try { 
 				MessageContext mc = webServiceContext.getMessageContext();
 				mc.put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
@@ -77,14 +78,10 @@ public class TransporterPort implements TransporterPortType {
 	
 	private void verifyNonce() throws TransporterException {
 		if(webServiceContext != null) {
-// 			try { 
-				String nounce = getNounceFromContext();
-				if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
-					throw new TransporterException("Recieved message with duplicated nonce.");
-				
-// 			} catch (TransporterException e) {
-// 				System.err.println("Failed to generate random: " + e.getMessage());
-// 			}
+			String nounce = getNounceFromContext();
+			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
+				throw new TransporterException("Recieved message with duplicated nonce.");
+			
 		}
 	}
 	

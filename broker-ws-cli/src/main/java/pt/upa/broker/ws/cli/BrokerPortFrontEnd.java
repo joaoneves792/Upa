@@ -50,7 +50,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 	public void updatePort() throws BrokerClientException {
 		String endpointAddress = null;
 		
-		for(int i = 0; i <= MAX_LOOKUPS; i++) {
+		for(int i = 0; i < MAX_LOOKUPS; i++) {
 			try {
 				if(_name == "nope") throw new ConnectException("nopenope");
 						
@@ -118,6 +118,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 					System.out.println("Failed to contact broker.\n" + e2.getMessage());
 					return;
+// 					throw new BrokerClientException(_name + " cannot be found.");
 				}
 			}
 	}
@@ -143,6 +144,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 					System.out.println("Failed to contact broker.\n" + e2.getMessage());
 					return;
+// 					throw new BrokerClientException(_name + " cannot be found.");
 				}
 			}
 
@@ -167,6 +169,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 			} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 				System.out.println("Failed to contact broker.\n" + e2.getMessage());
 				return null;
+// 				throw new BrokerClientException(_name + " cannot be found.");
 			}
 		}
 	}
@@ -197,6 +200,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 					System.out.println("Failed to contact broker.\n" + e2.getMessage());
 					return null;
+// 					throw new BrokerClientException(_name + " cannot be found.");
 				}
 			}
 
@@ -222,6 +226,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 					System.out.println("Failed to contact broker.\n" + e2.getMessage());
 					return null;
+// 					throw new BrokerClientException(_name + " cannot be found.");
 				}
 			}
 	}
@@ -245,6 +250,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 					System.out.println("Failed to contact broker.\n" + e2.getMessage());
 					return null;
+// 					throw new BrokerClientException(_name + " cannot be found.");
 				}
 			}
 	}
@@ -270,6 +276,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 			} catch(ConnectException | WebServiceException | BrokerClientException e2) {
 				System.out.println("Failed to contact broker.\n" + e2.getMessage());
 				return;
+// 				throw new BrokerClientException(_name + " cannot be found.");
 			}
 		}
 	}

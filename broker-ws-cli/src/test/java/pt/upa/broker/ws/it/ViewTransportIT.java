@@ -30,10 +30,10 @@ public class ViewTransportIT extends AbstractIT {
 		
 		for (int t = 0; t <= 3 * DELAY_UPPER || !tS.isEmpty(); t += TENTH_OF_SECOND) {
 			System.out.print(" " + t + "\t");
-			Thread.sleep(TENTH_OF_SECOND);
 			vt = CLIENT.getPort().viewTransport(rt);
+			Thread.sleep(TENTH_OF_SECOND);
 			if (tS.contains(vt.getState()))
-			tS.remove(vt.getState());
+				tS.remove(vt.getState());
 		}
 		assertEquals(0, tS.size());
 		System.out.println();

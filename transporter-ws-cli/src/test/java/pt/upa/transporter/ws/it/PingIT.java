@@ -16,13 +16,11 @@ public class PingIT extends AbstractIT {
 	 */
 	@Test
 	public void pingEmptyTest() {
-	
-		System.out.println("HERE");
 		System.out.println(CLIENT.getPort());
 		
 		assertNotNull(CLIENT.getPort().ping("test"));
 	}
-
+	
 }
 
 

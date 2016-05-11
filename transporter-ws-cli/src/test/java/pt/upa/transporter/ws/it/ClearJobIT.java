@@ -18,8 +18,8 @@ public class ClearJobIT extends AbstractIT {
 	 */
 	@Test
 	public void testClearJob() throws Exception {
-		PORT.clearJobs();
-		assertEquals(0, PORT.listJobs().size());
+		CLIENT.getPort().clearJobs();
+		assertEquals(0, CLIENT.getPort().listJobs().size());
 	}
 
 }

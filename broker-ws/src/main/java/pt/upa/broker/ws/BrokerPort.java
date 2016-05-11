@@ -206,7 +206,7 @@ public class BrokerPort implements BrokerPortType {
 			_timer.cancel();
 	}
 	
-	private void propagateState(UpdateAction action, TransportView transport){
+	private void propagateState(UpdateAction action, TransportView transport) {
 		try {
 			if (_backupServer != null) {
 				stopTimer();
@@ -215,8 +215,8 @@ public class BrokerPort implements BrokerPortType {
 			}
 			
 		} catch (BrokerClientException e) {
-			System.out.println("Backup Server lost.");
 			_backupServer = null;
+			System.out.println("Backup Server lost.");
 		}
 	}
 	

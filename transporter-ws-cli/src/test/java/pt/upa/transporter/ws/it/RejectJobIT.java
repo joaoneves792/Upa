@@ -22,8 +22,8 @@ public class RejectJobIT extends AbstractIT {
 	 */
 	@Test
 	public void testRejectJob() throws Exception {
-		JobView jv = PORT.requestJob(CENTRO_1, SUL_1, PRICE_SMALLEST_LIMIT);
-		jv = PORT.decideJob(jv.getJobIdentifier(), false);
+		JobView jv = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, PRICE_SMALLEST_LIMIT);
+		jv = CLIENT.getPort().decideJob(jv.getJobIdentifier(), false);
 		assertEquals(JobStateView.REJECTED, jv.getJobState());
 	}
 
@@ -37,9 +37,9 @@ public class RejectJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadJobFault_Exception.class)
 	public void testRejectDuplicateJob() throws Exception {
-		JobView jv = PORT.requestJob(CENTRO_2, SUL_2, PRICE_SMALLEST_LIMIT);
-		PORT.decideJob(jv.getJobIdentifier(), false);
-		PORT.decideJob(jv.getJobIdentifier(), false);
+		JobView jv = CLIENT.getPort().requestJob(CENTRO_2, SUL_2, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().decideJob(jv.getJobIdentifier(), false);
+		CLIENT.getPort().decideJob(jv.getJobIdentifier(), false);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class RejectJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadJobFault_Exception.class)
 	public void testRejectInvalidJob() throws Exception {
-		PORT.decideJob(EMPTY_STRING, false);
+		CLIENT.getPort().decideJob(EMPTY_STRING, false);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public class RejectJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadJobFault_Exception.class)
 	public void testRejectNullJob() throws Exception {
-		PORT.decideJob(null, false);
+		CLIENT.getPort().decideJob(null, false);
 	}
 
 }

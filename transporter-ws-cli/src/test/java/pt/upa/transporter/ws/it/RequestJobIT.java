@@ -26,7 +26,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test
 	public void testRequestJob() throws Exception {
-		PORT.requestJob(CENTRO_1, SUL_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(CENTRO_1, SUL_1, PRICE_SMALLEST_LIMIT);
 	}
 
 	// -------------- invalid inputs test cases ---------------
@@ -39,7 +39,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobInvalidOrigin() throws Exception {
-		PORT.requestJob(EMPTY_STRING, CENTRO_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(EMPTY_STRING, CENTRO_1, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobNullOrigin() throws Exception {
-		PORT.requestJob(null, SUL_1, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(null, SUL_1, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobInvalidDestination() throws Exception {
-		PORT.requestJob(CENTRO_1, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(CENTRO_1, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobNullDestination() throws Exception {
-		PORT.requestJob(SUL_1, null, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(SUL_1, null, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobInvalidOD() throws Exception {
-		PORT.requestJob(EMPTY_STRING, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(EMPTY_STRING, EMPTY_STRING, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadLocationFault_Exception.class)
 	public void testRequestJobNullOD() throws Exception {
-		PORT.requestJob(null, null, PRICE_SMALLEST_LIMIT);
+		CLIENT.getPort().requestJob(null, null, PRICE_SMALLEST_LIMIT);
 	}
 
 	/**
@@ -111,7 +111,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test(expected = BadPriceFault_Exception.class)
 	public void testRequestJobInvalidPrice() throws Exception {
-		PORT.requestJob(CENTRO_1, SUL_1, INVALID_PRICE);
+		CLIENT.getPort().requestJob(CENTRO_1, SUL_1, INVALID_PRICE);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	public void testRequestJobInvalidArgs1() throws Exception {
 		try {
-			PORT.requestJob(EMPTY_STRING, EMPTY_STRING, INVALID_PRICE);
+			CLIENT.getPort().requestJob(EMPTY_STRING, EMPTY_STRING, INVALID_PRICE);
 		} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 			// do nothing because both exceptions can be expected
 		}
@@ -142,7 +142,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	public void testRequestJobInvalidArgs2() throws Exception {
 		try {
-			PORT.requestJob(null, null, INVALID_PRICE);
+			CLIENT.getPort().requestJob(null, null, INVALID_PRICE);
 		} catch (BadLocationFault_Exception | BadPriceFault_Exception e) {
 			// do nothing because both exceptions can be expected
 		}
@@ -158,7 +158,7 @@ public class RequestJobIT extends AbstractIT {
 	 */
 	@Test
 	public void testUpperPriceLimit() throws Exception {
-		JobView jv1 = PORT.requestJob(SUL_1, CENTRO_1, PRICE_UPPER_LIMIT + 1);
+		JobView jv1 = CLIENT.getPort().requestJob(SUL_1, CENTRO_1, PRICE_UPPER_LIMIT + 1);
 		assertNull(jv1);
 	}
 
@@ -173,7 +173,7 @@ public class RequestJobIT extends AbstractIT {
 	@Test
 	public void testPriceBelowSmallestLimit() throws Exception {
 		final int referencePrice = PRICE_SMALLEST_LIMIT - UNITARY_PRICE;
-		JobView jv1 = PORT.requestJob(CENTRO_1, SUL_1, referencePrice);
+		JobView jv1 = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, referencePrice);
 		final int price = jv1.getJobPrice();
 		assertTrue(price >= UNITARY_PRICE && price < referencePrice);
 	}
@@ -188,7 +188,7 @@ public class RequestJobIT extends AbstractIT {
 	@Test
 	public void testLowerEqualPriceLimit() throws Exception {
 		final int referencePrice = PRICE_SMALLEST_LIMIT;
-		JobView jv1 = PORT.requestJob(SUL_1, CENTRO_1, referencePrice);
+		JobView jv1 = CLIENT.getPort().requestJob(SUL_1, CENTRO_1, referencePrice);
 		final int price = jv1.getJobPrice();
 		assertTrue(price >= UNITARY_PRICE && price < referencePrice);
 	}
@@ -208,7 +208,7 @@ public class RequestJobIT extends AbstractIT {
 		int oddReferencePrice = PRICE_SMALLEST_LIMIT + 1;
 		assertTrue(oddReferencePrice % 2 == 1);
 
-		JobView jv1 = PORT.requestJob(CENTRO_1, SUL_1, oddReferencePrice);
+		JobView jv1 = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, oddReferencePrice);
 		final int price = jv1.getJobPrice();
 		assertTrue(price >= UNITARY_PRICE && price < oddReferencePrice);
 	}
@@ -228,7 +228,7 @@ public class RequestJobIT extends AbstractIT {
 		assertTrue(evenReferencePrice % 2 == 0);
 		assertTrue(evenReferencePrice < Integer.MAX_VALUE - 1);
 
-		JobView jv1 = PORT.requestJob(CENTRO_1, SUL_1, evenReferencePrice);
+		JobView jv1 = CLIENT.getPort().requestJob(CENTRO_1, SUL_1, evenReferencePrice);
 		final int price = jv1.getJobPrice();
 		assertTrue(price > evenReferencePrice && price < Integer.MAX_VALUE);
 	}
@@ -246,7 +246,7 @@ public class RequestJobIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testZeroPrice() throws Exception {
-		JobView jv1 = PORT.requestJob(SUL_1, CENTRO_1, ZERO_PRICE);
+		JobView jv1 = CLIENT.getPort().requestJob(SUL_1, CENTRO_1, ZERO_PRICE);
 		final int price = jv1.getJobPrice();
 		assertEquals(ZERO_PRICE, price);
 	}
@@ -262,7 +262,7 @@ public class RequestJobIT extends AbstractIT {
 	// not tested for evaluation as stated in project Q&A:
 	// http://disciplinas.tecnico.ulisboa.pt/leic-sod/2015-2016/labs/proj/faq.html
 	public void testUnitaryPrice() throws Exception {
-		JobView jv1 = PORT.requestJob(SUL_1, CENTRO_1, UNITARY_PRICE);
+		JobView jv1 = CLIENT.getPort().requestJob(SUL_1, CENTRO_1, UNITARY_PRICE);
 		final int price = jv1.getJobPrice();
 		assertEquals(ZERO_PRICE, price);
 	}
