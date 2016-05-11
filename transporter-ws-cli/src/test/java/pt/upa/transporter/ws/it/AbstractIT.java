@@ -59,7 +59,7 @@ public class AbstractIT {
 			CLIENT = new TransporterClient(wsURL);
 		}
 
-		PORT = CLIENT.getPort();
+// 		PORT = CLIENT.getPort();
 
 		//PORT.setVerbose(true);
 

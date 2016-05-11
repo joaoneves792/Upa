@@ -66,7 +66,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
 		
-		System.out.println("\n\n" + nounce + "\n\n");
+// 		System.out.println("\n\n" + nounce + "\n\n");
 		
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
@@ -307,7 +307,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		} catch (SOAPException e) {
 			System.out.printf("Failed to get SOAP header because of %s%n", e);
 		} catch (Exception e){
-			System.out.println(e.toString());
+			System.out.println("BUG IS HERE. " + e.toString());
 			System.exit(-1);
 		}
 		
