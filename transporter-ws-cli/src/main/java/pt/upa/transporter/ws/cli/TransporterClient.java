@@ -39,6 +39,34 @@ public class TransporterClient {
 		return (String) mc.get("recievedNounce");
 	}
 	
+// 	public void setContext(String endpointAddress, String nounce) {
+// 		//System.out.println("Setting endpoint address ...");
+// 		BindingProvider bindingProvider = (BindingProvider) port;
+// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+// 		
+// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
+// 			
+// // 			if(_ignoreContext) {
+// // 				requestContext.put("wsIgnore", "true");
+// // 			}
+// 			
+// 			requestContext.put("wsName", "UpaBroker");
+//  			requestContext.put("wsNounce", nounce);
+// 			
+// 			if(_forgeSignature)
+// 				requestContext.put("forgeSignature", "true");
+// 			else
+// 				requestContext.put("forgeSignature", "false");
+// 			
+// 			if(_dupNounce)
+// 				requestContext.put("dupNounce", "true");
+// 			else
+// 				requestContext.put("dupNounce", "false");
+// 			
+// // 			requestContext.put("uddiURL", _uddiLocation);
+// 	}
+	
+	
 	public void setContext(String endpointAddress, String nounce) {
 		//System.out.println("Setting endpoint address ...");
 		BindingProvider bindingProvider = (BindingProvider) port;
@@ -46,12 +74,11 @@ public class TransporterClient {
 		
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
 			
-			if(_ignoreContext) {
-				requestContext.put("wsIgnore", "true");
-			}
+// 			if(_ignoreContext) {
+// 				requestContext.put("wsIgnore", "true");
+// 			}
 			
 			requestContext.put("wsName", "UpaBroker");
- 			requestContext.put("wsNounce", nounce);
 			
 			if(_forgeSignature)
 				requestContext.put("forgeSignature", "true");
@@ -59,19 +86,20 @@ public class TransporterClient {
 				requestContext.put("forgeSignature", "false");
 			
 			if(_dupNounce)
-				requestContext.put("dupNounce", "true");
+				requestContext.put("wsNounce", SignatureHandler.DUP_NOUNCE);
 			else
-				requestContext.put("dupNounce", "false");
+				requestContext.put("wsNounce", nounce);
 			
 // 			requestContext.put("uddiURL", _uddiLocation);
 	}
+	
 	
 
 	
 	public TransporterPortType getPort(){
 		
 		// get a diferent sequence of numbers for each test
-		// this sequence is not in hexadecimal to not conflict with the actual nonces from broker
+		// this sequence is smaller and not in hexadecimal to not conflict with the actual nonces from broker
 		if(_ignoreContext == true || _forgeSignature == true || _dupNounce == true)
 			setContext("someaddress", Long.toString(System.currentTimeMillis()));
 			
@@ -222,31 +250,7 @@ public class TransporterClient {
 // 	}
 
 
-	
-// 	private void setContext(TransporterPortType port, String endpointAddress) {
-// 		//System.out.println("Setting endpoint address ...");
-// 		BindingProvider bindingProvider = (BindingProvider) port;
-// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 		
-// 		try { 
-// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-// 			requestContext.put("wsName", "UpaBroker");
-// 			requestContext.put("wsNounce", SignatureHandler.getSecureRandom(_sentNounces));
-// 			
-// 			if(_forgeSignature)
-// 				requestContext.put("forgeSignature", "true");
-// 			else
-// 				requestContext.put("forgeSignature", "false");
-// 			
-// 			if(_dupNounce)
-// 				requestContext.put("dupNounce", "true");
-// 			else
-// 				requestContext.put("dupNounce", "false");
-// 				
-// 		} catch (NoSuchAlgorithmException e) {
-// 			System.err.println("Failed to generate random: " + e.getMessage());
-// 		}
-// 	}
+
 	
 	
 	

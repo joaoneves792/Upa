@@ -24,12 +24,12 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext> {
 	}
 	
 	public boolean handleMessage(SOAPMessageContext smc) {
-// 		printSOAP(smc);
+		printSOAP(smc);
 		return true;
 	}
 	
 	public boolean handleFault(SOAPMessageContext smc) {
-// 		printSOAP(smc);
+		printSOAP(smc);
 		return true;
 	}
 	

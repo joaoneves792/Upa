@@ -53,7 +53,7 @@ public class TransporterPort implements TransporterPortType {
 
 	private String getNounceFromContext() {
 		MessageContext mc = webServiceContext.getMessageContext();
-		return (String) mc.get("recievedNounce");
+		return (String) webServiceContext.getMessageContext().get("recievedNounce");
 	}
 	
 	private String getIgnoreFlagFromContext() {
@@ -78,7 +78,12 @@ public class TransporterPort implements TransporterPortType {
 	
 	private void verifyNonce() throws TransporterException {
 		if(webServiceContext != null) {
-			String nounce = getNounceFromContext();
+		
+// 			String signature = (String) webServiceContext.getMessageContext().get("signatureIsValid");
+// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
+// 				throw new TransporterException("Recieved invalid signature.");
+			
+			String nounce = (String) webServiceContext.getMessageContext().get("recievedNounce");
 			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
 				throw new TransporterException("Recieved message with duplicated nonce.");
 			
@@ -185,6 +190,7 @@ public class TransporterPort implements TransporterPortType {
 			return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 		
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return null;
 		}
@@ -241,6 +247,7 @@ public class TransporterPort implements TransporterPortType {
 			_jobs.add(job);
 			return job;
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return null;
 		}
@@ -280,6 +287,7 @@ public class TransporterPort implements TransporterPortType {
 			return job;
 		
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return null;
 		}
@@ -299,6 +307,7 @@ public class TransporterPort implements TransporterPortType {
 			}
 			
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return null;
 		}
@@ -315,6 +324,7 @@ public class TransporterPort implements TransporterPortType {
 			return _jobs;
 			
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return null;
 		}
@@ -331,6 +341,7 @@ public class TransporterPort implements TransporterPortType {
 			_jobCounter = 0;
 		
 		} catch (TransporterException e) {
+			setContextForHandler();
 			System.err.println(e.getMessage());
 			return;
 		}

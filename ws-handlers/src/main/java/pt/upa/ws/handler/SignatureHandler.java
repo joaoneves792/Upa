@@ -47,7 +47,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 	private KeyManager _keyManager;
 	
-	public static String DUP_NOUNCE = "B00B135B00B13SB00B135B00B13SB00B";
+	public static String DUP_NOUNCE = "B00B135B00B135B00B135B00B135";
 	
 // functions to manage server nounces
 	public static String getSecureRandom(Map<String, String> sent) throws NoSuchAlgorithmException {
@@ -159,8 +159,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		
 		// assuming signature has at least 2 characters
 		char temp = charArray[0];
-		charArray[0] = charArray[1];
-		charArray[1] = temp;
+		for(int i=0; i < signature.length()-1; i++) {
+			if(charArray[i] != temp) {
+				charArray[0] = charArray[i];
+				charArray[i] = temp;
+				break;
+			}
+		}
 		
 		return new String(charArray);
 	}
@@ -210,9 +215,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			if (soapHeader == null)
 				soapHeader = soapEnvelope.addHeader();
 			
-			String ignore = (String)smc.get("wsIgnore");
-			if(ignore != null)
-				addHeaderElement(soapEnvelope, "wsIgnore", "true");
+// 			String ignore = (String)smc.get("wsIgnore");
+// 			if(ignore != null)
+// 				addHeaderElement(soapEnvelope, "wsIgnore", "true");
 			
 			final String senderName = (String)smc.get("wsName");
 			addHeaderElement(soapEnvelope, "sender", senderName);
@@ -220,9 +225,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			
 			// should be final, but can't because of the nounce tests 
 			String nounce = (String)smc.get("wsNounce");
-			if("true".equals((String)smc.get("dupNounce"))) {
-				nounce = DUP_NOUNCE;
-			}
+// 			if("true".equals((String)smc.get("dupNounce"))) {
+// 				nounce = DUP_NOUNCE;
+// 			}
 			addHeaderElement(soapEnvelope, "nounce", nounce);
 // 			System.out.println("nounce added: " + nounce);
 			
@@ -264,18 +269,18 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 			
 			
-			// get ignore context flag for transporter integration tests
-			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
-			String ignore = null;
-			if(headerElement != null) {
-// 				System.out.println("Ignoring context.");
-				ignore = headerElement.getValue();
-// 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);
-				if("true".equals(ignore)) {
-					smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
-					smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
-				}
-			}
+// 			// get ignore context flag for transporter integration tests
+// 			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
+// 			String ignore = null;
+// 			if(headerElement != null) {
+// // 				System.out.println("Ignoring context.");
+// 				ignore = headerElement.getValue();
+// // 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);
+// 				if("true".equals(ignore)) {
+// 					smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
+// 					smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
+// 				}
+// 			}
 			
 			
 			// get sender header element
@@ -309,7 +314,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			}
 			String nounce = headerElement.getValue();
 // 			System.out.println("SignatureHandler got (nounce)\t\t" + nounce);
-			smc.put("recievedNounce", senderName+nounce); // servers handle nounces
+			smc.put("recievedNounce", senderName+nounce);
 			smc.setScope("recievedNounce", Scope.APPLICATION);
 // 			System.out.println("SignatureHandler got (nounce)\t\t" + (String)smc.get("recievedNounce"));
 
@@ -334,12 +339,17 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				cert = _keyManager.forceCertificateRefresh(senderName);
 				try{
 					_keyManager.verifyCertificate(cert);
+					
 				}catch (CertificateException | SignatureException e){
-					System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
+					String s = "The certificate for " + senderName + " failed to pass verification!";
+					System.err.println(s + " Ignoring message.");
 					return false;
 				}
+				
 				if(!signatureIsValid(signature, str, cert.getPublicKey())) {
 					System.out.println("Recieved invalid signature from " + senderName);
+// 					smc.put("signatureIsValid", "false");
+// 					smc.setScope("signatureIsValid", Scope.APPLICATION);
 					return false;
 				}
 			}
