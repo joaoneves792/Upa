@@ -30,21 +30,54 @@ JUDDI:
 juddi-3.3.2_tomcat-7.0.64_9090/bin/startup.sh
 ```
 
-
-[3] Obter código fonte do projeto (versão entregue)
+[2] Obter código fonte do projeto (versão entregue)
 
 ```
-git clone -b SD_R1 https://github.com/tecnico-distsys/A_45-project/
+git clone -b SD_R2 https://github.com/tecnico-distsys/A_45-project/
 ```
 
-
-[4] Instalar módulos de bibliotecas auxiliares
+[3] Instalar módulos de bibliotecas auxiliares
 
 ```
 cd uddi-naming
 mvn clean install
 ```
 
+[4] (Opcional) Criar e instalar chaves
+(Opcional: as chaves ja se encontram instaladas no repositorio)
+```
+cd CA-ws
+./generateKeystores.sh
+cp generated-keystores/CA.jks ..
+cp generated-keystores/UpaBroker/UpaBroker.jks ../broker-ws
+cp generated-keystores/cacert.pem ../broker-ws
+cp generated-keystores/UpaBroker/UpaBroker.jks ../transporter-ws-cli
+cp generated-keystores/cacert.pem ../transporter-ws-cli
+cp generated-keystores/UpaTransporter1/UpaTransporter1.jks ../transporter-ws
+cp generated-keystores/UpaTransporter2/UpaTransporter2.jks ../transporter-ws
+cp generated-keystores/cacert.pem ../transporter-ws
+```
+
+-------------------------------------------------------------------------------
+### Servico CA
+[1] Construir e executar **servidor**
+```
+cd CA-ws
+mvn clean compile exec:java
+```
+[2] Construir e instalar **cliente**
+```
+cd CA-ws-cli
+mvn clean compile install
+```
+
+-------------------------------------------------------------------------------
+### Handlers
+[1] Construir e installar handlers
+```
+cd ws-handlers
+mvn clean compile install
+```
 -------------------------------------------------------------------------------
 
 ### Serviço TRANSPORTER
@@ -53,7 +86,7 @@ mvn clean install
 
 ```
 cd transporter-ws
-mvn clean install
+mvn clean compile install
 mvn exec:java
 mvn exec:java -Dws.i=2
 ```
@@ -62,7 +95,7 @@ mvn exec:java -Dws.i=2
 
 ```
 cd transporter-ws-cli
-mvn clean install
+mvn clean install -DskipTests=true
 ```
 
 ...
@@ -71,20 +104,30 @@ mvn clean install
 -------------------------------------------------------------------------------
 
 ### Serviço BROKER
+[1] Construir e installar cliente
+```
+cd broker-ws-cli
+mvn clean compile install -DskipTests=true
+```
 
-[1] Construir e executar **servidor**
+[2] Construir e executar **servidor de backup**
 
 ```
 cd broker-ws
 mvn clean install
+mvn exec:java -Dws.port=8078 -Dws.backupMode=true
+```
+
+[3] Executar **servidor principal**
+```
 mvn exec:java
 ```
 
-[2] Construir **cliente** e executar testes
+
+[4] Executar testes de integração
 
 ```
 cd broker-ws-cli
-mvn clean install
 mvn verify
 ```
 
