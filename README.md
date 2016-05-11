@@ -43,8 +43,10 @@ cd uddi-naming
 mvn clean install
 ```
 
-[4] (Opcional) Criar e instalar chaves
+[4] Criar e instalar chaves
+
 (Opcional: as chaves ja se encontram instaladas no repositorio)
+
 ```
 cd CA-ws
 ./generateKeystores.sh
