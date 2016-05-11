@@ -50,20 +50,7 @@ public class TransporterPort implements TransporterPortType {
 	@Resource
 	private WebServiceContext webServiceContext;
 	
-
-	private String getNounceFromContext() {
-		MessageContext mc = webServiceContext.getMessageContext();
-		return (String) webServiceContext.getMessageContext().get("recievedNounce");
-	}
-	
-	private String getIgnoreFlagFromContext() {
-		MessageContext mc = webServiceContext.getMessageContext();
-		return (String) mc.get("DONOTSENDBACK");
-	}
-	
-	
 	private void setContextForHandler(){
-// 		if(webServiceContext != null && !"true".equals(getIgnoreFlagFromContext())) {
 		if(webServiceContext != null) {
 			try { 
 				MessageContext mc = webServiceContext.getMessageContext();
@@ -78,18 +65,13 @@ public class TransporterPort implements TransporterPortType {
 	
 	private void verifyNonce() throws TransporterException {
 		if(webServiceContext != null) {
-		
-// 			String signature = (String) webServiceContext.getMessageContext().get("signatureIsValid");
-// 			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
-// 				throw new TransporterException("Recieved invalid signature.");
-			
 			String nounce = (String) webServiceContext.getMessageContext().get("recievedNounce");
 			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
 				throw new TransporterException("Recieved message with duplicated nonce.");
 			
 		}
 	}
-	
+
 	
 	// private timer task definition
 	private class ChangeStateTask extends TimerTask {
@@ -348,34 +330,4 @@ public class TransporterPort implements TransporterPortType {
 	}
 	
 }
-
-// deprecated //
-
-// 	private String getSecureRandom() throws NoSuchAlgorithmException {
-// 		SecureRandom nounce;
-// 		final byte array[] = new byte[16];
-// 		String str = "";
-// 		do {
-// 			nounce = SecureRandom.getInstance("SHA1PRNG");
-// 			nounce.nextBytes(array);
-// 			str = printHexBinary(array);
-// 			
-// 		} while(_sentNounces.get(str));
-// 		
-// 		_sentNounces.put(str, str);
-// 		return str;
-// 	}
-// 
-// 	private Boolean nounceIsValid() {
-// 		Map<String, Object> receivedContext = bindingProvider.getResponseContext();
-// 		final String nounce = (String) responseContext.get("wsNounce");
-// 		
-// 		if(_receivedNounces.get(nounce) == null) {
-// 			_receivedNounces.put(nounce, nounce);
-// 			return true;
-// 		} else
-// 			return false;
-// 		
-// 		return false;
-// 	}
 

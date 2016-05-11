@@ -66,9 +66,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	}
 
 	public static Boolean nounceIsValid(Map<String, String> received, String nounce) {
-		
-// 		System.out.println("\n\n" + nounce + "\n\n");
-		
 		if(received.get(nounce) == null) {
 			received.put(nounce, nounce);
 			return true;
@@ -214,20 +211,13 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			SOAPHeader soapHeader = soapEnvelope.getHeader();
 			if (soapHeader == null)
 				soapHeader = soapEnvelope.addHeader();
-			
-// 			String ignore = (String)smc.get("wsIgnore");
-// 			if(ignore != null)
-// 				addHeaderElement(soapEnvelope, "wsIgnore", "true");
-			
+
 			final String senderName = (String)smc.get("wsName");
 			addHeaderElement(soapEnvelope, "sender", senderName);
 // 			System.out.println("sender added: " + senderName);
 			
 			// should be final, but can't because of the nounce tests 
 			String nounce = (String)smc.get("wsNounce");
-// 			if("true".equals((String)smc.get("dupNounce"))) {
-// 				nounce = DUP_NOUNCE;
-// 			}
 			addHeaderElement(soapEnvelope, "nounce", nounce);
 // 			System.out.println("nounce added: " + nounce);
 			
@@ -267,22 +257,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				System.out.println("Header not found.");
 				return false;
 			}
-			
-			
-// 			// get ignore context flag for transporter integration tests
-// 			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
-// 			String ignore = null;
-// 			if(headerElement != null) {
-// // 				System.out.println("Ignoring context.");
-// 				ignore = headerElement.getValue();
-// // 				System.out.println("SignatureHandler got (sender)\t\t" + senderName);
-// 				if("true".equals(ignore)) {
-// 					smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
-// 					smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
-// 				}
-// 			}
-			
-			
+
 			// get sender header element
 			headerElement = getHeaderElement(soapEnvelope, "sender");
 			if(headerElement == null) {
@@ -348,8 +323,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				
 				if(!signatureIsValid(signature, str, cert.getPublicKey())) {
 					System.out.println("Recieved invalid signature from " + senderName);
-// 					smc.put("signatureIsValid", "false");
-// 					smc.setScope("signatureIsValid", Scope.APPLICATION);
 					return false;
 				}
 			}
@@ -368,73 +341,4 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 }
 
-//		mvn exec:java -Dws.port=8078 -Dws.backupMode=true
-//		mvn clean -Dmaven.test.skip=true install
-//		mvn clean -Dtest=PingIT test
-
-
-// deprecated //
-
-// 		// THIS is an example on how to get your own private key and everyone else's certificates
-// 		// ----------------------------->
-// 			try {
-// 				//You can only get your private key when message is outbound
-// 				PrivateKey mykey = _keyManager.getMyPrivateKey(); 
-// 				
-// 				 //Certs you can get whenever you want
-// 				X509Certificate cert1 = _keyManager.getCertificate("UpaTransporter1");
-// 				X509Certificate cert2 = _keyManager.getCertificate("UpaTransporter2");
-// 				X509Certificate cert3 = _keyManager.getCertificate("UpaBroker");
-// 				
-// 				//Force to refresh this certificate
-// 				X509Certificate forcedRefreshCert = _keyManager.forceCertificateRefresh("UpaBroker"); 
-// 				
-// 				//Get the CA certificate (stored locally on our Keystore)
-// 				X509Certificate cacert = _keyManager.getCACertificate(); 
-// 				
-// 				/*Some asserts for testing...*/
-// 				assert null != cacert;
-// 				assert null != forcedRefreshCert;
-// 				assert null != cert1;
-// 				assert null != cert2;
-// 				assert null != cert3;
-// 				assert null != mykey;
-// 			}catch (Exception e){
-// 				System.out.println(e.toString());
-// 				System.exit(-1);
-// 			}
-// 		// <-------------------------------
-
-
-
-// 	private String getSecureRandom(String senderName) throws NoSuchAlgorithmException {
-// 		SecureRandom nounce;
-// 		final byte array[] = new byte[16];
-// 		String str = "";
-// 		do {
-// 			nounce = SecureRandom.getInstance("SHA1PRNG");
-// 			nounce.nextBytes(array);
-// 			str = printHexBinary(array);
-// 			
-// 		} while(_keyManager.containsNounce(senderName+"sent", str));
-// 		
-// 		_keyManager.addNounce(senderName+"sent", str);
-// 		return str;
-// 	}
-//
-// 	if(!senderName.equals("UpaBroker")) {
-// 		// everyone not broker only speaks with broker
-// 		if(_keyManager.containsNounce("UpaBroker"+senderName+"recieved", nounce)) {
-// 			System.out.println(senderName + " received a repeated nounce.");
-// 			return false;
-// 		}
-// 	} else {
-// 		// FIXME no idea how to distinguish transporters here
-// 		// broker receives stuff from everyone
-// 		if(_keyManager.containsNounce(senderName+"recieved", nounce)) {
-// 			System.out.println(senderName + " received a repeated nounce.");
-// 			return false;
-// 		}
-// 	}
-	
 

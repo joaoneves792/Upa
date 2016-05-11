@@ -39,33 +39,6 @@ public class TransporterClient {
 		return (String) mc.get("recievedNounce");
 	}
 	
-// 	public void setContext(String endpointAddress, String nounce) {
-// 		//System.out.println("Setting endpoint address ...");
-// 		BindingProvider bindingProvider = (BindingProvider) port;
-// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 		
-// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
-// 			
-// // 			if(_ignoreContext) {
-// // 				requestContext.put("wsIgnore", "true");
-// // 			}
-// 			
-// 			requestContext.put("wsName", "UpaBroker");
-//  			requestContext.put("wsNounce", nounce);
-// 			
-// 			if(_forgeSignature)
-// 				requestContext.put("forgeSignature", "true");
-// 			else
-// 				requestContext.put("forgeSignature", "false");
-// 			
-// 			if(_dupNounce)
-// 				requestContext.put("dupNounce", "true");
-// 			else
-// 				requestContext.put("dupNounce", "false");
-// 			
-// // 			requestContext.put("uddiURL", _uddiLocation);
-// 	}
-	
 	
 	public void setContext(String endpointAddress, String nounce) {
 		//System.out.println("Setting endpoint address ...");
@@ -73,10 +46,6 @@ public class TransporterClient {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
-			
-// 			if(_ignoreContext) {
-// 				requestContext.put("wsIgnore", "true");
-// 			}
 			
 			requestContext.put("wsName", "UpaBroker");
 			
@@ -89,12 +58,8 @@ public class TransporterClient {
 				requestContext.put("wsNounce", SignatureHandler.DUP_NOUNCE);
 			else
 				requestContext.put("wsNounce", nounce);
-			
-// 			requestContext.put("uddiURL", _uddiLocation);
 	}
 	
-	
-
 	
 	public TransporterPortType getPort(){
 		
@@ -130,8 +95,6 @@ public class TransporterClient {
 			TransporterService service = new TransporterService();
 			this.port = service.getTransporterPort();
 			
-// 			setContext(port, endpointAddress);
-			
 		}catch (JAXRException e) {
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
 			ex.initCause(e);
@@ -153,7 +116,6 @@ public class TransporterClient {
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 		
-// 		setContext(port, endpointAddress);
 	}
 
 	
@@ -162,7 +124,6 @@ public class TransporterClient {
 
 	public TransporterClient(String uddiURL, String name, Boolean ignore, Boolean forge, Boolean dup)
 																	throws TransporterClientException {
-		
 		
 		try {
 			System.out.printf("Contacting UDDI at %s%n", uddiURL);
@@ -182,8 +143,6 @@ public class TransporterClient {
 			//System.out.println("Creating stub ...");
 			TransporterService service = new TransporterService();
 			this.port = service.getTransporterPort();
-			
-// 			setContext(port, endpointAddress);
 			
 		} catch (JAXRException e) {
 			TransporterClientException ex = new TransporterClientException(String.format("Client failed lookup on UDDI at %s!", uddiURL));
@@ -217,41 +176,10 @@ public class TransporterClient {
 		TransporterService service = new TransporterService();
 		this.port = service.getTransporterPort();
 		
-// 		setContext(port, endpointAddress);
 	}
 
 }
 
-
-// 	/**
-// 	 *	Special context that the transporter server recogises in order to not send context back
-// 	 *	The client class alone cannot recognise context as valid or not, the ones that use it do
-// 	 */
-// 	private void setSpecialContext() {
-// 		//System.out.println("Setting endpoint address ...");
-// 		BindingProvider bindingProvider = (BindingProvider) port;
-// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
-// 			
-// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, "someaddress");
-// 			requestContext.put("wsName", "DONOTSENDBACK");
-// 			requestContext.put("wsNounce", "AAAAAAAAAAAA");
-// // 			requestContext.put("uddiURL", _uddiLocation);
-// 			
-// 			if(_forgeSignature)
-// 				requestContext.put("forgeSignature", "true");
-// 			else
-// 				requestContext.put("forgeSignature", "false");
-// 			
-// 			if(_dupNounce)
-// 				requestContext.put("dupNounce", "true");
-// 			else
-// 				requestContext.put("dupNounce", "false");
-// 			
-// 	}
-
-
-
-	
 	
 	
 	

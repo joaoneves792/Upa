@@ -168,18 +168,6 @@ public class BrokerPort implements BrokerPortType {
 				UDDINaming uddiNaming = new UDDINaming(_uddiLocation);
 				String url = uddiNaming.lookup("UpaBrokerBackup");	// FIXME lookup record
 				
-// 				UDDIRecord record = _uddiNaming.lookupRecord(_name);
-// 				if(record == null) {
-// 					throw new JAXRException("Invalid uddi record.");
-// 				
-// 				} else {
-// 					endpointAddress = record.getUrl();
-// 					if(endpointAddress == null) {
-// 						throw new JAXRException("Invalid endpoint address.");
-// 					}
-// 				}
-				
-				
 				uddiNaming.unbind("UpaBrokerBackup");
 				System.out.println("Deleted 'UpaBrokerBackup' from UDDI");
 				
