@@ -1,3 +1,4 @@
+ 
 # Projeto de Sistemas Distribuídos 2015-2016 #
 
 Grupo de SD 45 - Campus Alameda
@@ -65,7 +66,7 @@ cp generated-keystores/cacert.pem ../transporter-ws
 [1] Construir e executar **servidor**
 ```
 cd CA-ws
-mvn clean compile exec:java
+mvn clean compile test exec:java
 ```
 [2] Construir e instalar **cliente**
 ```
@@ -84,20 +85,27 @@ mvn clean compile install
 
 ### Serviço TRANSPORTER
 
-[1] Construir e executar **servidor**
+[1] Construir e executar **servidor 1**
 
 ```
 cd transporter-ws
-mvn clean compile install
+mvn clean compile test
 mvn exec:java
+```
+
+[2] Construir e executar **servidor 2**
+
+```
+cd transporter-ws
+mvn clean compile test
 mvn exec:java -Dws.i=2
 ```
 
-[2] Construir **cliente**
+[3] Construir **cliente**
 
 ```
 cd transporter-ws-cli
-mvn clean install -DskipTests=true
+mvn clean compile install
 ```
 
 ...
@@ -109,19 +117,20 @@ mvn clean install -DskipTests=true
 [1] Construir e installar cliente
 ```
 cd broker-ws-cli
-mvn clean compile install -DskipTests=true
+mvn clean compile -DskipTests=true install
 ```
 
 [2] Construir e executar **servidor de backup**
 
 ```
 cd broker-ws
-mvn clean install
+mvn clean compile test
 mvn exec:java -Dws.port=8078 -Dws.backupMode=true
 ```
 
 [3] Executar **servidor principal**
 ```
+cd broker-ws
 mvn exec:java
 ```
 
