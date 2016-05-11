@@ -95,7 +95,7 @@ public class BrokerPort implements BrokerPortType {
 	
 	/**
 	 *	SOAPContext gets deleted before broker has a chance to get the nonce
-	 *	the text file is an alternative context sharing channel
+	 *	consider the text file is an alternative context sharing channel
 	 */
 	private String getNounceFromFile(String path) {
 		Charset charset = Charset.forName("US-ASCII");
@@ -166,7 +166,19 @@ public class BrokerPort implements BrokerPortType {
 				System.out.println("Contact with the server was lost. Taking over.");
 				
 				UDDINaming uddiNaming = new UDDINaming(_uddiLocation);
-				String url = uddiNaming.lookup("UpaBrokerBackup");
+				String url = uddiNaming.lookup("UpaBrokerBackup");	// FIXME lookup record
+				
+// 				UDDIRecord record = _uddiNaming.lookupRecord(_name);
+// 				if(record == null) {
+// 					throw new JAXRException("Invalid uddi record.");
+// 				
+// 				} else {
+// 					endpointAddress = record.getUrl();
+// 					if(endpointAddress == null) {
+// 						throw new JAXRException("Invalid endpoint address.");
+// 					}
+// 				}
+				
 				
 				uddiNaming.unbind("UpaBrokerBackup");
 				System.out.println("Deleted 'UpaBrokerBackup' from UDDI");

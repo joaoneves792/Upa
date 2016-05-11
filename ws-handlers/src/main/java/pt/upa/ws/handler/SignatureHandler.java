@@ -201,18 +201,22 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		
 	public boolean handleOutbound(SOAPMessageContext smc) {
 			
+			System.out.println("HELLO");
 		// put token in request SOAP header
 		try {
 			SOAPEnvelope soapEnvelope = smc.getMessage().getSOAPPart().getEnvelope();
-			
 			// create header if it does not exist
 			SOAPHeader soapHeader = soapEnvelope.getHeader();
 			if (soapHeader == null)
 				soapHeader = soapEnvelope.addHeader();
 			
+// 			String ignore = (String)smc.get("wsIgnore");
+// 			if(ignore != null)
+// 				addHeaderElement(soapEnvelope, "wsIgnore", "true");
+			
 			final String senderName = (String)smc.get("wsName");
 			addHeaderElement(soapEnvelope, "sender", senderName);
-// 			System.out.println("sender added: " + senderName);
+			System.out.println("sender added: " + senderName);
 			
 			// should be final, but can't because of the nounce tests 
 			String nounce = (String)smc.get("wsNounce");
@@ -240,6 +244,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		} catch (Exception e) {
 			// FIXME: don't catch everything
 			System.out.printf("\nException in handler: %s%n", e);
+			e.printStackTrace();
 		}
 		
 		return true;
@@ -256,8 +261,25 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			// check header
 			if (soapHeader == null) {
 				System.out.println("Header not found.");
-				return true;
+				return false;
 			}
+			
+			
+// 			// get ignore context flag for transporter integration tests
+// 			headerElement = getHeaderElement(soapEnvelope, "wsIgnore");
+// 			if(headerElement != null) {
+// 				System.out.println("Ignoring context.");
+// 				return false;
+// 			}
+// 			String ignore = headerElement.getValue();
+// // 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
+// 			if("true".equals(ignore)) {
+// 				smc.put("DONOTSENDBACK", "true");	// to ignore context on transporter-cli tests
+// 				smc.setScope("DONOTSENDBACK", Scope.APPLICATION);
+// 			}
+			
+			
+			
 			
 			// get sender header element
 			headerElement = getHeaderElement(soapEnvelope, "sender");
@@ -268,8 +290,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			String senderName = headerElement.getValue();
 			X509Certificate cert = _keyManager.getCertificate(senderName);
 			PublicKey publicKey = cert.getPublicKey();
-// 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);	
-			
+// 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
+
 			
 			// get nounce header element
 			headerElement = getHeaderElement(soapEnvelope, "nounce");

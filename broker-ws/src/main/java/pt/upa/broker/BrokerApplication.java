@@ -62,8 +62,8 @@ public class BrokerApplication {
 		} finally {
 			// delete dump file created before
 			// FIXME if backup goes down before nounces stop working
-			if(backupMode)
-				file.delete();
+// 			if(backupMode)
+// 				file.delete();
 			
 			//stop broker timer tasks
 			if (port != null)
@@ -82,7 +82,7 @@ public class BrokerApplication {
 				if (uddiNaming != null) {
 					
 					// check if backup server has taken over
-					if (backupMode && uddiNaming.lookup(name) == null)
+					if (backupMode && uddiNaming.lookupRecord(name) == null)
 						name = wsname;
 					
 					// delete from UDDI

@@ -56,9 +56,14 @@ public class TransporterPort implements TransporterPortType {
 		return (String) mc.get("recievedNounce");
 	}
 	
+	private String getIgnoreFlagFromContext() {
+		MessageContext mc = webServiceContext.getMessageContext();
+		return (String) mc.get("DONOTSENDBACK");
+	}
+	
 	
 	private void setContextForHandler(){
-		if(null != webServiceContext){ /*If it is null than we are running the unit tests*/
+		if(webServiceContext != null && !"true".equals(getIgnoreFlagFromContext())) {
 			try { 
 				MessageContext mc = webServiceContext.getMessageContext();
 				mc.put("wsName", TRANSPORTER_COMPANY_PREFIX + _id);
@@ -72,9 +77,14 @@ public class TransporterPort implements TransporterPortType {
 	
 	private void verifyNonce() throws TransporterException {
 		if(webServiceContext != null) {
-			String nounce = getNounceFromContext();
-			if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
-				throw new TransporterException("Recieved message with duplicated nonce.");
+// 			try { 
+				String nounce = getNounceFromContext();
+				if(!SignatureHandler.nounceIsValid(_receivedNounces, nounce))
+					throw new TransporterException("Recieved message with duplicated nonce.");
+				
+// 			} catch (TransporterException e) {
+// 				System.err.println("Failed to generate random: " + e.getMessage());
+// 			}
 		}
 	}
 	
@@ -164,22 +174,24 @@ public class TransporterPort implements TransporterPortType {
 		return _jobMinTime + (new Random().nextInt(_jobMaxTime - _jobMinTime));
 	}
 	
+	
+	
+// WSDL functions //
+	
 	// returns answer to ping request
 	@Override
 	public String ping(String name) {
 		try {
-		setContextForHandler();
+			verifyNonce();
+			setContextForHandler();
+			
+			return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 		
-		verifyNonce();
-// 		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-// 			return null; // or throw exception
-
 		} catch (TransporterException e) {
 			System.err.println(e.getMessage());
 			return null;
 		}
 		
-		return name + " " + TRANSPORTER_COMPANY_PREFIX + _id;
 	}
 	
 	
@@ -187,52 +199,54 @@ public class TransporterPort implements TransporterPortType {
 	@Override
     public JobView requestJob(String origin, String destination, int price)
  			throws BadLocationFault_Exception, BadPriceFault_Exception {
-		
-		setContextForHandler();
-		
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
+		try {
+			verifyNonce();
+			setContextForHandler();
 			
-		// check for recognised location and working regions
-		if(verifyLocation(origin) == false || verifyLocation(destination) == false)
+			// check for recognised location and working regions
+			if(verifyLocation(origin) == false || verifyLocation(destination) == false)
+				return null;
+			
+			// negative prices are not allowed
+			if(price < 0) {
+				BadPriceFault priceFault = new BadPriceFault();
+				priceFault.setPrice(price);
+				throw new BadPriceFault_Exception("Invalid price: "+ price, priceFault);
+			}
+			
+			// has to return null for prices over 100
+			if(price > 100) {
+				return null;
+			}
+			
+			JobView job = new JobView();
+			
+			job.setCompanyName(TRANSPORTER_COMPANY_PREFIX+_id);
+			job.setJobIdentifier(Integer.toString(_jobCounter++));
+			job.setJobOrigin(origin);
+			job.setJobDestination(destination);
+			job.setJobState(JobStateView.PROPOSED);
+			
+			// has to return a better deal for prices lower or equal than 10
+			if(price <= 10) {
+				job.setJobPrice(1+(new Random()).nextInt(price-1));
+			}
+			
+			// if price and id are both even or both odd return a lower price
+			else if((_id + price)%2 == 0) {
+				job.setJobPrice(1+(new Random()).nextInt(price-2));
+			
+			// if not, return an higher price
+			} else {
+				job.setJobPrice(price+1 + (new Random()).nextInt(price));
+			}
+			
+			_jobs.add(job);
+			return job;
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
 			return null;
-		
-		// negative prices are not allowed
-		if(price < 0) {
-			BadPriceFault priceFault = new BadPriceFault();
-			priceFault.setPrice(price);
- 			throw new BadPriceFault_Exception("Invalid price: "+ price, priceFault);
 		}
-		
-		// has to return null for prices over 100
-		if(price > 100) {
-			return null;
-		}
-		
-		JobView job = new JobView();
-		
-		job.setCompanyName(TRANSPORTER_COMPANY_PREFIX+_id);
-		job.setJobIdentifier(Integer.toString(_jobCounter++));
-		job.setJobOrigin(origin);
-		job.setJobDestination(destination);
-		job.setJobState(JobStateView.PROPOSED);
-		
-		// has to return a better deal for prices lower or equal than 10
-		if(price <= 10) {
-			job.setJobPrice(1+(new Random()).nextInt(price-1));
-		}
-		
-		// if price and id are both even or both odd return a lower price
-		else if((_id + price)%2 == 0) {
-			job.setJobPrice(1+(new Random()).nextInt(price-2));
-		
-		// if not, return an higher price
-		} else {
-			job.setJobPrice(price+1 + (new Random()).nextInt(price));
-		}
-		
-		_jobs.add(job);
-		return job;
 	}
 	
 	// accepts or rejects job with given id
@@ -240,68 +254,89 @@ public class TransporterPort implements TransporterPortType {
     public JobView decideJob(String id, boolean accept)
     		throws BadJobFault_Exception {
 
-		setContextForHandler();
-		
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
-		
-		// find job with given id (throws exception on fail)
-		JobView job = getJob(id);
-		
-		// verify if job state is correct (throws exception if wrong)
-		verifyJobState(job, JobStateView.PROPOSED);
-		
-		// change job state to accepted or rejected
-		if (accept) {
-			job.setJobState(JobStateView.ACCEPTED);
+		try {
+			verifyNonce();
+			setContextForHandler();
 			
-			// set job timers
-			int time = 0;
-			Timer timer = new Timer();
-			timer.schedule(new ChangeStateTask(job, JobStateView.HEADING), time += pickRandomTime());
-			timer.schedule(new ChangeStateTask(job, JobStateView.ONGOING), time += pickRandomTime());
-			timer.schedule(new ChangeStateTask(job, JobStateView.COMPLETED), time += pickRandomTime());
 			
-		} else {
-			job.setJobState(JobStateView.REJECTED);
+			// find job with given id (throws exception on fail)
+			JobView job = getJob(id);
+			
+			// verify if job state is correct (throws exception if wrong)
+			verifyJobState(job, JobStateView.PROPOSED);
+			
+			// change job state to accepted or rejected
+			if (accept) {
+				job.setJobState(JobStateView.ACCEPTED);
+				
+				// set job timers
+				int time = 0;
+				Timer timer = new Timer();
+				timer.schedule(new ChangeStateTask(job, JobStateView.HEADING), time += pickRandomTime());
+				timer.schedule(new ChangeStateTask(job, JobStateView.ONGOING), time += pickRandomTime());
+				timer.schedule(new ChangeStateTask(job, JobStateView.COMPLETED), time += pickRandomTime());
+				
+			} else {
+				job.setJobState(JobStateView.REJECTED);
+			}
+			
+			return job;
+		
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
+			return null;
 		}
-		return job;
     }
 	
 	// returns job current state
 	@Override
 	public JobView jobStatus(String id) {
-		setContextForHandler();
-		
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
-		
 		try {
-			return getJob(id);
-		} catch (BadJobFault_Exception e) {
-			return null; // if no job is found
+			verifyNonce();
+			setContextForHandler();
+			
+			try {
+				return getJob(id);
+			} catch (BadJobFault_Exception e) {
+				return null; // if no job is found
+			}
+			
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
+			return null;
 		}
 	}
 	
 	// returns the list of current jobs
 	@Override
 	public List<JobView> listJobs() {
-		setContextForHandler();
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return null; // or throw exception
 		
-		return _jobs;
+		try {
+			verifyNonce();
+			setContextForHandler();
+			
+			return _jobs;
+			
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
+			return null;
+		}
 	}
 	
 	// clears the list of current jobs
 	@Override
 	public void clearJobs() {
-		setContextForHandler();
-		if(!SignatureHandler.nounceIsValid(_receivedNounces, getNounceFromContext()))
-			return; // or throw exception
+		try {
+			verifyNonce();
+			setContextForHandler();
+			
+			_jobs.clear();
+			_jobCounter = 0;
 		
-		_jobs.clear();
-		_jobCounter = 0;
+		} catch (TransporterException e) {
+			System.err.println(e.getMessage());
+			return;
+		}
 	}
 	
 }

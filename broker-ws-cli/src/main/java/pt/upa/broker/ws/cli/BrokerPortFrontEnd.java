@@ -56,7 +56,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 						
 				System.out.println("Trying to establish contact with" + _name + "... " + i);
 				UDDIRecord record = _uddiNaming.lookupRecord(_name);
-				if(_uddiNaming.lookupRecord(_name) == null) {
+				if(record == null) {
 					throw new JAXRException("Invalid uddi record.");
 				
 				} else {
@@ -79,7 +79,6 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				
 				System.out.println(_name + " found.");
 				return;
-			
 			
 			} catch (Exception e) {
 				System.out.println(_name + " is down!");

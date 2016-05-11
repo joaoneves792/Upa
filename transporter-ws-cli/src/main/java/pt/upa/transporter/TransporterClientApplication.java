@@ -16,6 +16,6 @@ public class TransporterClientApplication {
 		
 		// just testing functions from here on
 		
-		System.out.println(tclient.port.ping("Found:") + "\n");
+		System.out.println(tclient.getPort().ping("Found:") + "\n");
 	}
 }

@@ -21,15 +21,16 @@ import java.security.NoSuchAlgorithmException;
 
 public class TransporterClient {
 	public TransporterPortType port;
+	private String _uddiLocation;
+	private String _endpointAddress;
+	
+	// variables for transporter integration tests
+	private Integer _nonceCounter = 0;
+	private Boolean _ignoreContext = false;
 	private Boolean _forgeSignature = false;
 	private Boolean _dupNounce = false;
-	private String _endpointAddress;
 
-	// Yes, this should be in broker-ws, not here. I'm looking into it.
-// 	private Map<String, String> _sentNounces = new TreeMap<String, String>();
-// 	private Map<String, String> _receivedNounces = new TreeMap<String, String>();
 
-	
 	@Resource
 	private WebServiceContext webServiceContext;
 
@@ -44,9 +45,16 @@ public class TransporterClient {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, _endpointAddress);
-			requestContext.put("wsName", "UpaBroker");
-			requestContext.put("wsNounce", nounce);
-// 			requestContext.put("uddiURL", _uddiLocation);
+			
+			if(_ignoreContext) {
+				requestContext.put("wsIgnore", "true");
+				requestContext.put("wsName", "UpaBroker");
+				requestContext.put("wsNounce", Integer.toString(_nonceCounter++));
+			
+			} else {
+				requestContext.put("wsName", "UpaBroker");
+				requestContext.put("wsNounce", nounce);
+			}
 			
 			if(_forgeSignature)
 				requestContext.put("forgeSignature", "true");
@@ -58,15 +66,22 @@ public class TransporterClient {
 			else
 				requestContext.put("dupNounce", "false");
 			
+// 			requestContext.put("uddiURL", _uddiLocation);
 	}
+	
 
 	
 	public TransporterPortType getPort(){
+		
+		if(_ignoreContext == true || _forgeSignature == true || _dupNounce == true)
+			setContext("someaddress", "somenonce");
+			
 		return port;
 	}
 	
 	
 	public TransporterClient(String uddiURL, String name) throws TransporterClientException {
+		_uddiLocation = uddiURL;
 		try {
 			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
 			UDDINaming uddiNaming = new UDDINaming(uddiURL);
@@ -74,7 +89,7 @@ public class TransporterClient {
 			//System.out.printf("Looking for '%s'%n", name);
 			String endpointAddress = null;
 			if(uddiNaming.lookupRecord(name) != null)
-				endpointAddress = uddiNaming.lookup(name);
+				endpointAddress = uddiNaming.lookupRecord(name).getUrl();
 			
 			if (endpointAddress == null) {
 				//System.out.println(name + " not found!");
@@ -118,13 +133,12 @@ public class TransporterClient {
 	
 // constructors to test signature verification //
 
-	public TransporterClient(String uddiURL, String name, Boolean forge, Boolean dup)
-																	throws TransporterClientException {		
-		_forgeSignature = forge;
-		_dupNounce = dup;
+	public TransporterClient(String uddiURL, String name, Boolean ignore, Boolean forge, Boolean dup)
+																	throws TransporterClientException {
+		
 		
 		try {
-			//System.out.printf("Contacting UDDI at %s%n", uddiURL);
+			System.out.printf("Contacting UDDI at %s%n", uddiURL);
 			UDDINaming uddiNaming = new UDDINaming(uddiURL);
 			
 			//System.out.printf("Looking for '%s'%n", name);
@@ -149,10 +163,18 @@ public class TransporterClient {
 			ex.initCause(e);
 			throw ex;
 		}
+		_uddiLocation = uddiURL;
+		_ignoreContext = ignore;
+		_forgeSignature = forge;
+		_dupNounce = dup;
 	}
 
-	public TransporterClient(String endpointAddress, Boolean forge, Boolean dup)
+	public TransporterClient(String endpointAddress, Boolean ignore, Boolean forge, Boolean dup)
 																	throws TransporterClientException {		
+		
+// 		this.TransporterClient(endpointAddress);
+		
+		_ignoreContext = ignore;
 		_forgeSignature = forge;
 		_dupNounce = dup;
 		
@@ -172,6 +194,33 @@ public class TransporterClient {
 	}
 
 }
+
+
+// 	/**
+// 	 *	Special context that the transporter server recogises in order to not send context back
+// 	 *	The client class alone cannot recognise context as valid or not, the ones that use it do
+// 	 */
+// 	private void setSpecialContext() {
+// 		//System.out.println("Setting endpoint address ...");
+// 		BindingProvider bindingProvider = (BindingProvider) port;
+// 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+// 			
+// 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, "someaddress");
+// 			requestContext.put("wsName", "DONOTSENDBACK");
+// 			requestContext.put("wsNounce", "AAAAAAAAAAAA");
+// // 			requestContext.put("uddiURL", _uddiLocation);
+// 			
+// 			if(_forgeSignature)
+// 				requestContext.put("forgeSignature", "true");
+// 			else
+// 				requestContext.put("forgeSignature", "false");
+// 			
+// 			if(_dupNounce)
+// 				requestContext.put("dupNounce", "true");
+// 			else
+// 				requestContext.put("dupNounce", "false");
+// 			
+// 	}
 
 
 	

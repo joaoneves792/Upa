@@ -46,7 +46,7 @@ public class AbstractIT {
 		}
 		String uddiEnabled = PROPS.getProperty("uddi.enabled");
 		String uddiURL = PROPS.getProperty("uddi.url");
-		//String wsName = PROPS.getProperty("ws.name");
+// 		String wsName = PROPS.getProperty("ws.name");
 		String wsName = PROPS.getProperty("ws.name") + "1";
 		String wsURL = PROPS.getProperty("ws.url");
 
@@ -54,9 +54,9 @@ public class AbstractIT {
 		// (UpaTransporter1).
 
 		if ("true".equalsIgnoreCase(uddiEnabled)) {
-			CLIENT = new TransporterClient(uddiURL, wsName);
+			CLIENT = new TransporterClient(uddiURL, wsName, true, false, false);
 		} else {
-			CLIENT = new TransporterClient(wsURL);
+			CLIENT = new TransporterClient(wsURL, true, false, false);
 		}
 
 // 		PORT = CLIENT.getPort();
