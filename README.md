@@ -97,7 +97,6 @@ mvn exec:java
 
 ```
 cd transporter-ws
-mvn clean compile test
 mvn exec:java -Dws.i=2
 ```
 
