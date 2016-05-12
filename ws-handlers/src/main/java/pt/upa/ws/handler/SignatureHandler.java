@@ -11,15 +11,12 @@ import java.security.cert.X509Certificate;
 import java.security.NoSuchAlgorithmException;
 import java.security.GeneralSecurityException;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Map;
-
-import java.io.StringWriter;
+import static javax.xml.bind.DatatypeConverter.printHexBinary;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import static javax.xml.bind.DatatypeConverter.printHexBinary;
+import javax.xml.transform.TransformerException;
+import javax.xml.soap.SOAPException;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 import javax.xml.soap.Name;
@@ -34,6 +31,12 @@ import javax.xml.ws.handler.MessageContext.Scope;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
+import pt.upa.a45.CA.cli.CAException;
+
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Map;
+import java.io.StringWriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -110,7 +113,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 	
 
 	// FIXME throw right exceptions
-	private String getSOAPBodyAsString(SOAPMessageContext smc) throws Exception {
+// 	private String getSOAPBodyAsString(SOAPMessageContext smc) throws Exception {
+	private String getSOAPBodyAsString(SOAPMessageContext smc) throws TransformerException, SOAPException {
 		SOAPBody element = smc.getMessage().getSOAPBody();
 		DOMSource source = new DOMSource(element);
 		StringWriter stringResult = new StringWriter();
@@ -134,7 +138,10 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 		return printHexBinary(output);
 	}
 	
-	private boolean signatureIsValid(String signature, String message, PublicKey publicKey) throws Exception {
+// 	private boolean signatureIsValid(String signature, String message, PublicKey publicKey) throws Exception {
+	private boolean signatureIsValid(String signature, String message, PublicKey publicKey) 
+																			throws GeneralSecurityException {
+		
 		// signature comes in hexadecimal
 		// message os computed localy and is a regular string
 		final byte[] signatureBytes = DatatypeConverter.parseHexBinary(signature);
@@ -236,7 +243,6 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			System.out.println("Failed to create a header element: " + e.getMessage());
 			return false;
 		} catch (Exception e) {
-			// FIXME: don't catch everything
 			System.out.printf("\nException in handler: %s%n", e);
 			e.printStackTrace();
 		}
@@ -268,13 +274,12 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			X509Certificate cert;
 			try {
 				 cert = _keyManager.getCertificate(senderName);
-			}catch (CertificateException | SignatureException e){
+			}catch (CertificateException | SignatureException | CAException e){
 				System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
 				return false;
 			}
 			PublicKey publicKey = cert.getPublicKey();
 // 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
-
 			
 			// get nounce header element
 			headerElement = getHeaderElement(soapEnvelope, "nounce");
@@ -308,7 +313,7 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				/*Refresh the certificate and try again once*/
 				try{
 					cert = _keyManager.forceCertificateRefresh(senderName);
-				}catch (CertificateException | SignatureException e){
+				}catch (CertificateException | SignatureException | CAException e){
 					String s = "The certificate for " + senderName + " failed to pass verification!";
 					System.err.println(s + " Ignoring message.");
 					return false;
@@ -322,8 +327,9 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			
 		} catch (SOAPException e) {
 			System.out.printf("Failed to get SOAP header because of %s%n", e);
-		} catch (Exception e){
-			System.out.println("BUG IS HERE. " + e.toString());
+		} catch (GeneralSecurityException e) {
+			System.out.printf("Failed to verify signature because of %s%n", e);
+		}  catch (Exception e){
 			e.printStackTrace();
 			System.exit(-1);
 		}
