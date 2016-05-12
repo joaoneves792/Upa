@@ -106,9 +106,12 @@ public class KeyManager {
     }
 
     public X509Certificate getCertificate(String entity)throws CAException, CertificateException, SignatureException{
-        if(_certCache.containsKey(entity))
-            return _certCache.get(entity);
-			
+        if(_certCache.containsKey(entity)){
+            X509Certificate cert = _certCache.get(entity);
+            cert.checkValidity();
+            return cert;
+        }
+
         return forceCertificateRefresh(entity);
     }
 
