@@ -265,17 +265,12 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 				return false;
 			}
 			String senderName = headerElement.getValue();
-			X509Certificate cert = _keyManager.getCertificate(senderName);
+			X509Certificate cert;
 			try {
-				_keyManager.verifyCertificate(cert);
+				 cert = _keyManager.getCertificate(senderName);
 			}catch (CertificateException | SignatureException e){
-				try{
-					cert = _keyManager.forceCertificateRefresh(senderName);
-					_keyManager.verifyCertificate(cert);
-				}catch (CertificateException | SignatureException ex){
-					System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
-					return false;
-				}
+				System.err.println("The certificate for " + senderName + " failed to pass verification! Ignoring message");
+				return false;
 			}
 			PublicKey publicKey = cert.getPublicKey();
 // 			System.out.println("SignatureHandler got (sender)\t\t" + senderName);
@@ -311,10 +306,8 @@ public class SignatureHandler implements SOAPHandler<SOAPMessageContext> {
 			String str = senderName + nounce + getSOAPBodyAsString(smc);
 			if(!signatureIsValid(signature, str, publicKey)) {
 				/*Refresh the certificate and try again once*/
-				cert = _keyManager.forceCertificateRefresh(senderName);
 				try{
-					_keyManager.verifyCertificate(cert);
-					
+					cert = _keyManager.forceCertificateRefresh(senderName);
 				}catch (CertificateException | SignatureException e){
 					String s = "The certificate for " + senderName + " failed to pass verification!";
 					System.err.println(s + " Ignoring message.");

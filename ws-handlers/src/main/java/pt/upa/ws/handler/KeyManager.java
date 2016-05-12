@@ -105,15 +105,17 @@ public class KeyManager {
         return ((KeyStore.PrivateKeyEntry)(_ks.getEntry(MYKEY, protParam))).getPrivateKey();
     }
 
-    public X509Certificate getCertificate(String entity)throws CAException{
+    public X509Certificate getCertificate(String entity)throws CAException, CertificateException, SignatureException{
         if(_certCache.containsKey(entity))
             return _certCache.get(entity);
 			
         return forceCertificateRefresh(entity);
     }
 
-    public X509Certificate forceCertificateRefresh(String entity)throws CAException{
+    public X509Certificate forceCertificateRefresh(String entity)throws CAException, CertificateException, SignatureException{
         X509Certificate cert = _ca.getCertificate(entity);
+        verifyCertificate(cert);
+
         _certCache.put(entity, cert);
         return cert;
     }
