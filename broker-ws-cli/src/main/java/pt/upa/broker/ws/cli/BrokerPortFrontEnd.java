@@ -3,6 +3,7 @@ package pt.upa.broker.ws.cli;
 
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 						throw new JAXRException("Invalid endpoint address.");
 					}
 				}
-				
+
 				BrokerService service = new BrokerService();
 				this._port = service.getBrokerPort();
 				
@@ -73,7 +74,29 @@ public class BrokerPortFrontEnd implements BrokerPortType {
 				BindingProvider bindingProvider = (BindingProvider) _port;
 				Map<String, Object> requestContext = bindingProvider.getRequestContext();
 				requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-				
+
+				int connectionTimeout = 5000;
+				// The connection timeout property has different names in different versions of JAX-WS
+				// Set them all to avoid compatibility issues
+				final List<String> CONN_TIME_PROPS = new ArrayList<String>();
+				CONN_TIME_PROPS.add("com.sun.xml.ws.connect.timeout");
+				CONN_TIME_PROPS.add("com.sun.xml.internal.ws.connect.timeout");
+				CONN_TIME_PROPS.add("javax.xml.ws.client.connectionTimeout");
+				// Set timeout until a connection is established (unit is milliseconds; 0 means infinite)
+				for (String propName : CONN_TIME_PROPS)
+					requestContext.put(propName, connectionTimeout);
+
+				int receiveTimeout = 5000;
+				// The receive timeout property has alternative names
+				// Again, set them all to avoid compability issues
+				final List<String> RECV_TIME_PROPS = new ArrayList<String>();
+				RECV_TIME_PROPS.add("com.sun.xml.ws.request.timeout");
+				RECV_TIME_PROPS.add("com.sun.xml.internal.ws.request.timeout");
+				RECV_TIME_PROPS.add("javax.xml.ws.client.receiveTimeout");
+				// Set timeout until the response is received (unit is milliseconds; 0 means infinite)
+				for (String propName : RECV_TIME_PROPS)
+					requestContext.put(propName, receiveTimeout);
+
 				// force exception throwing if broker is down
 				_port.ping("ping");
 				

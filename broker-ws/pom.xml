@@ -27,7 +27,8 @@
 
         <ws.name>UpaBroker</ws.name>
         <ws.port>8080</ws.port>
-        <ws.url>http://localhost:${ws.port}/broker-ws/endpoint</ws.url>
+	<ws.host>localhost</ws.host>
+	<ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
         <ws.backupMode>false</ws.backupMode>
     </properties>
 

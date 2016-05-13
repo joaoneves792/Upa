@@ -20,8 +20,9 @@
 
         <mainclass>pt.upa.a45.CA.UpaCA</mainclass>
         <uddi.url>http://localhost:9090</uddi.url>
-        <ws.name>CA-ws</ws.name>
-        <ws.url>http://localhost:8079/CA-ws/endpoint</ws.url>
+	<ws.name>CA-ws</ws.name>
+	<ws.host>localhost</ws.host>
+	<ws.url>http://${ws.host}:8079/CA-ws/endpoint</ws.url>
 
     </properties>
     <dependencies>
