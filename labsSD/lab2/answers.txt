@@ -1,0 +1,36 @@
+
+1.	✓
+
+2.	the mutex is used so that the board doesn't get changed while it's being writen to the buffer, assuring it's displayed correctly.
+
+3.	✓
+
+4.	generated:	ttt.h
+				ttt_client.c
+				ttt_clnt.c
+				ttt.h
+				ttt_svc.c
+				ttt_xdr.c
+
+	a)	ttt_xdr.c
+
+	b)	file:	ttt_clnt.c
+		lines:	18, 33, 48; one per function
+
+	c)	client:	local_main.c
+				ttt_client.c
+				ttt_clnt.c
+		
+		server:	ttt.x
+				ttt_server.c
+				ttt_svc.c
+		
+		both:	ttt.h
+				ttt_xdr.c
+				? ttt_clnt.c	// because of the makefile line 18 ?
+				? ttt_svc.c
+
+
+	d)	makefile, ttt_client.c
+	
+	e)	udp

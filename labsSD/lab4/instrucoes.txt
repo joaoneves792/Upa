@@ -1,0 +1,7 @@
+
+
+o exercicio da aula foi implementado
+
+para correr o servidor: mvn compile exec:java
+
+para correr o cliente: mvn generate-sources compile exec:java

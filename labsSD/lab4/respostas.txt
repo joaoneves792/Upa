@@ -1,0 +1,15 @@
+
+1. sim.
+
+2. é especificado no seçao <binding> para cada funçao existe uma <operation>
+que contem os atributos de input e output
+
+3.
+a) em ambos os casos existe uma descriçao dos serviçoes que inclui os nomes das funçoes remotas e os seu parametros
+de input e output
+
+b) 
+
+4. existem duas classes geradas para cada funçao presente no WSDL, uma
+correspondenet aonome da funçao para q esta possa ser instanciada e outra
+correspondente à respetiva resposta para se obter o retorno

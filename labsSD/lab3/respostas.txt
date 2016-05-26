@@ -1,0 +1,9 @@
+4.i Quando se usa RMI o java mete o código para fazer marshaling e
+unmarshaling no stub/proxy
+
+4.ii Cliente: Game.java
+
+     Servidor: TTT.java
+	       TTTServer.java
+               
+     Ambos:    TTTService.java 

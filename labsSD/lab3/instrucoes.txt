@@ -1,0 +1,13 @@
+A funcionalidade foi totalmente implementada
+
+E preciso compilar e instalar o servidor primeiro:
+mvn compile install
+
+Para compilar o cliente basta
+mvn compile
+
+para correr o servidor:
+./target/appassembler/bin/ttt-rmi-server
+
+para correr o cliente
+mvn exec:java
